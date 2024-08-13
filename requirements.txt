@@ -1,0 +1,10 @@
+matplotlib
+pandas
+streamlit
+numpy
+scipy
+seaborn
+Pillow
+imageio
+plotly
+ipywidgets
