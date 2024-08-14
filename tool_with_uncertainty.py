@@ -84,7 +84,7 @@ def adjust_amplitude_phase(df, amp_col, phase_col):
     return df
 
 # Create four tabs
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Documentation","Initial analysis","Heat Map", "Curve Fit","Model Overtime","Phase difference","Custom Graph","Animation"])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Documentation","Initial analysis","Heat Map", "Curve Fit","Model Over time","Phase difference","Custom Graph","Animation"])
 
 with tab1:
     st.subheader(f"{star_emoji}Introduction{star_emoji}")
@@ -374,7 +374,7 @@ with tab4:
                 st.write(f"Optimized Vertical Shift (D): {D_opt:.2f}")
         else:
             st.write("No data found for the selected year and radius value.")
-    st.write('In conclusion, the automatic sine wave fit aligns closely with the observed data (with uncertainty is smoother than without), confirming that the variables height and velocity follow a periodic pattern with the provided parameters A, C and D. Manual adjustments show how deviations in amplitude, phase shift, and vertical shift can impact the fit, indicating areas where the model may require further refinement. However the optimum parameters are slighty better overall as the measurement can be made to more decimal places in comparison to manual fit.')
+    st.write('In conclusion, the automatic sine wave fit aligns closely with the observed data (with uncertainty is smoother than without), confirming that the variables height and velocity follow a periodic pattern with the provided parameters A, C and D. Manual adjustments show how deviations in amplitude, phase shift, and vertical shift can impact the fit, indicating areas where the model may require further refinement. However on the whole, the optimum parameters are slighty better overall.')
 with tab5:
 
     # Adjusting amplitude and phase shift values for height and velocity
@@ -463,7 +463,7 @@ with tab5:
         &nbsp;&nbsp;&nbsp;&nbsp; Similarly the amplitude for velocity shows similar patterns to height for different radii as the two are correlated this is expected.
         
         **Evolution Over Time:**  
-        &nbsp;&nbsp;&nbsp;&nbsp;This initial spike after 0.1 Gyr indicates that the warp is not only being induced but that the particles within the galaxy are moving more to keep up with the warp in response to the gravitational interaction. After the initial perturbation, the velocity amplitude might either decrease, suggesting the galaxy is returning to a more stable, less energetic state, or continue to grow, indicating that the warp's dynamic motion is escalating. Towards the end of the time frame the outer radii and closer radii are reaching similar levels of velocity amplitude which indicated possible stability.
+        &nbsp;&nbsp;&nbsp;&nbsp;This initial spike after 0.1 Gyr indicates that the warp is not only being induced but that the particles within the galaxy are moving more to keep up with the warp in response to the gravitational interaction. After the initial perturbation, the velocity amplitude might either decrease, suggesting the galaxy is returning to a more stable state, or continue to grow, indicating that the warp's dynamic motion is escalating. Theres a combination of the two for outer radii suggesting these things at varied points in time.')
         
         """,
         unsafe_allow_html=True
@@ -501,7 +501,7 @@ with tab5:
         &nbsp;&nbsp;&nbsp;&nbsp;The phase shift of height varies with distance from the galactic centre, showing a general pattern where the phase shift tends to take longer to sync at larger radii. The phase shifts of height at velocity at different radii show very similar trends however they slightly lag behind each other. This observation could be because the peak and curve of the warp has the potential to be different for each radius and the warp is also moving where the particles are moving to keep up and therefore the particles following it around take longer to get to the same point.
         
         **Evolution Over Time:**  
-        &nbsp;&nbsp;&nbsp;&nbsp;Initially, phase shifts for both height and velocity fluctuate broadly (0-360 degrees) as the system adjusts to disturbances. Over time, these shifts stabilize to a narrower range (around 75 degrees), particularly at larger radii. This suggests that the warp’s vertical displacement stabilizes after initial perturbations and that perhaps outer regions of the galaxy exhibit more pronounced and delayed responses compared to the inner regions.
+        &nbsp;&nbsp;&nbsp;&nbsp;Initially, phase shifts for both height and velocity fluctuate broadly (0-360 degrees) as the system adjusts to disturbances. Over time, these shifts stabilize to a narrower range apart from at outer radii. This suggests that the warp’s vertical displacement stabilizes after initial perturbations and that perhaps outer regions of the galaxy exhibit more pronounced and delayed responses compared to the inner regions.
         
         """,
         unsafe_allow_html=True
