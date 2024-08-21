@@ -878,7 +878,7 @@ with tab8:
     fig.update_layout(
         sliders=sliders,
         title=f"{variable} over phi for Radius {selected_R_ani}",
-        xaxis_title= r'$\phi$ (degrees)',
+        xaxis_title= 'phi (degrees)',
         yaxis_title=variable,
         yaxis=dict(range=[global_min, global_max]),  # Set the y-axis range
         annotations=[
