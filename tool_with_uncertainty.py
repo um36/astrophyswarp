@@ -209,17 +209,39 @@ with tab2:
     # Plotting
         fig, ax = plt.subplots()
 
+        # for r_value in selected_r_values:
+        #     subset = filtered_df[filtered_df['R'] == r_value]
+        #     ax.plot(subset['t'], subset[selected_column], label=f'radius = {r_value}')
+
+        # ax.set_xlabel('time')
+        # ax.set_ylabel(selected_column)
+        # ax.legend()
+        # ax.set_title(f'{selected_column} over time for $\phi$ = {selected_phi}')
+
+        # st.pyplot(fig)
+    # Plotting
+        fig, ax = plt.subplots()
+    
         for r_value in selected_r_values:
             subset = filtered_df[filtered_df['R'] == r_value]
             ax.plot(subset['t'], subset[selected_column], label=f'radius = {r_value}')
-
-        ax.set_xlabel('time')
+        
+        # Set x-axis label to 'Time (Gyr)'
+        ax.set_xlabel('Time (Gyr)')
+        
+        # Set y-axis label based on the selected column
         ax.set_ylabel(selected_column)
+        
+        # Ensure the x-axis starts from 0
+        ax.set_xlim(left=0)
+        
+        # Add a legend and title
         ax.legend()
         ax.set_title(f'{selected_column} over time for $\phi$ = {selected_phi}')
-
+        
+        # Display the plot in Streamlit
         st.pyplot(fig)
-
+        
     st.subheader(f"{star_emoji}Initial analysis for specific point in time{star_emoji}")
     st.write('This graph displays the variation of the selected column (Zmean or vZ_mean) across all phi positions for a specific year and different radius values (R). You can choose a year from the dropdown menu, select which column you want to plot on the y-axis, and select multiple radius values to compare their patterns across positions.')
     # user input options
