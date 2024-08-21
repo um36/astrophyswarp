@@ -312,28 +312,30 @@ with tab3:
     # # Show the scatter plot in Streamlit
     # st.pyplot(fig)
     # Plot Circular Distribution using Ellipses
-    # Plot Circular Distribution using Scatter with Adjusted Size
+   # Plot Circular Distribution using Scatter with Adjusted Size
     fig, ax = plt.subplots(figsize=(10, 8))
     
     # Convert polar to Cartesian coordinates
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
     
-    # Adjust circle size to ensure they fill the gaps
+    # Calculate circle sizes based on the distance from the center
+    # This ensures that circles will be larger in the outer regions and smaller in the inner regions
     max_radius = filtered_df_t_h['R'].max()
     
-    # Calculate the size of the circles (increase as necessary)
-    filtered_df_t_h['circle_size'] = (1000 / max_radius) * (filtered_df_t_h['R'] / max_radius) ** 0.5
+    # Adjust circle size to fill the gaps and touch each other
+    # The size of the circles should be proportional to the radial distance
+    circle_sizes = (filtered_df_t_h['R'] / max_radius) ** 0.5 * 1000  # Adjust 1000 for better fitting
     
-    # Scatter plot with adjusted circle sizes to fill the space
+    # Scatter plot with circles that fill the space and touch
     sc = ax.scatter(
         filtered_df_t_h['x'], 
         filtered_df_t_h['y'], 
         c=filtered_df_t_h[selected_column_h], 
         cmap='coolwarm', 
-        norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), 
-        s=filtered_df_t_h['circle_size'] * 1000,  # Adjust this factor to increase/decrease size
-        alpha=1  # Full opacity to reduce gaps
+        norm=plt.Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), 
+        s=circle_sizes,  # Size of circles adjusted for touching
+        alpha=1  # Full opacity to avoid gaps
     )
     
     # Set axis labels and title
