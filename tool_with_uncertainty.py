@@ -208,19 +208,6 @@ with tab2:
 
     # Plotting
         fig, ax = plt.subplots()
-
-        # for r_value in selected_r_values:
-        #     subset = filtered_df[filtered_df['R'] == r_value]
-        #     ax.plot(subset['t'], subset[selected_column], label=f'radius = {r_value}')
-
-        # ax.set_xlabel('time')
-        # ax.set_ylabel(selected_column)
-        # ax.legend()
-        # ax.set_title(f'{selected_column} over time for $\phi$ = {selected_phi}')
-
-        # st.pyplot(fig)
-    # Plotting
-        fig, ax = plt.subplots()
     
         for r_value in selected_r_values:
             subset = filtered_df[filtered_df['R'] == r_value]
@@ -268,6 +255,8 @@ with tab2:
             ax.plot(subset_t['phi'], subset_t[selected_column_t], label=f'radius = {r_value_t}')
 
         ax.set_xlabel(r'$\phi$')
+        # Ensure the x-axis starts from 0
+        ax.set_xlim(left=0)
         ax.set_ylabel(selected_column_t)
         ax.legend()
         ax.set_title(f'{selected_column_t} over all positions for year = {selected_year}')
@@ -292,7 +281,7 @@ with tab3:
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(heatmap_data, cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(heatmap_data)), vmax=np.max(np.abs(heatmap_data))), ax=ax)
 
-    ax.set_xlabel('$phi$ (Degrees)')
+    ax.set_xlabel(r'$\phi$')
     ax.set_ylabel('Radius (kpc)')
     ax.set_title(f'{selected_column_h} Heatmap at Time = {selected_year_h:.2f}')
 
@@ -302,24 +291,49 @@ with tab3:
     st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
 
     # Plot Circular Distribution
-    fig, ax = plt.subplots(figsize=(10, 8))
+    # fig, ax = plt.subplots(figsize=(10, 8))
 
+    # # Convert polar to Cartesian
+    # filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
+    # filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
+
+    # # Adjust circle size
+    # max_radius = filtered_df_t_h['R'].max()
+    # circle_size = 2000 / max_radius  # Adjust 2000 as necessary to get the desired effect
+
+    # # Scatter plot for height
+    # sc = ax.scatter(filtered_df_t_h['x'], filtered_df_t_h['y'], c=filtered_df_t_h[selected_column_h], cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), s=circle_size)
+    # ax.set_xlabel('X (kpc)')
+    # ax.set_ylabel('Y (kpc)')
+    # ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
+    # plt.colorbar(sc, ax=ax, label='Height')
+
+    # # Show the scatter plot in Streamlit
+    # st.pyplot(fig)
+    # Plot Circular Distribution using Hexbin
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
     # Convert polar to Cartesian
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
-
-    # Adjust circle size
-    max_radius = filtered_df_t_h['R'].max()
-    circle_size = 2000 / max_radius  # Adjust 2000 as necessary to get the desired effect
-
-    # Scatter plot for height
-    sc = ax.scatter(filtered_df_t_h['x'], filtered_df_t_h['y'], c=filtered_df_t_h[selected_column_h], cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), s=circle_size)
+    
+    # Create a hexbin plot
+    hb = ax.hexbin(
+        filtered_df_t_h['x'], 
+        filtered_df_t_h['y'], 
+        C=filtered_df_t_h[selected_column_h], 
+        gridsize=50, # Adjust for finer or coarser grids
+        cmap='coolwarm', 
+        reduce_C_function=np.mean,  # Aggregate the data by mean
+        mincnt=1
+    )
+    
     ax.set_xlabel('X (kpc)')
     ax.set_ylabel('Y (kpc)')
     ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
-    plt.colorbar(sc, ax=ax, label='Height')
-
-    # Show the scatter plot in Streamlit
+    plt.colorbar(hb, ax=ax, label=selected_column_h)
+    
+    # Show the hexbin plot in Streamlit
     st.pyplot(fig)
 
     st.write("Initially, the heat map shows a wide range of variability with no clear pattern in both height and velocity. After year 0.1, there is a noticeable shift, with height/velocity values becoming more positive and more negative, peaking at 0.6 in the phi range between 170 and 270 degrees (for height), and between 190 and 240 (for velocity). This increase is more pronounced at larger radii, while smaller radii near the center show height values approaching zero with less pronounced variation. Over time, the values shift across different phi regions, and the overall smoothness of the data decreases, indicating evolving patterns and potential changes in underlying processes.")
