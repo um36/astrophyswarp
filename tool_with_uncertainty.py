@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.patches import Ellipse
 import streamlit as st
 import numpy as np
 from scipy.optimize import curve_fit
