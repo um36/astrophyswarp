@@ -689,7 +689,7 @@ with tab6:
             if column_name in diff_df.columns:
                 ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
         
-        plt.set_xlabel('Time(Gyr)')
+        plt.xlabel('Time(Gyr)')
         ax.set_xlim(left=0)
         ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
         ax.set_title(f'{selected_metric.capitalize()} Phase Difference for consecutive radii Over Time')
