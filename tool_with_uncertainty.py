@@ -311,31 +311,44 @@ with tab3:
     # # Show the scatter plot in Streamlit
     # st.pyplot(fig)
     # Plot Circular Distribution using Hexbin
+    # Plot Circular Distribution using Rectangles
     fig, ax = plt.subplots(figsize=(10, 8))
     
-    # Convert polar to Cartesian
+    # Convert polar to Cartesian coordinates
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
     
-    # Create a hexbin plot
-    hb = ax.hexbin(
-        filtered_df_t_h['x'], 
-        filtered_df_t_h['y'], 
-        C=filtered_df_t_h[selected_column_h], 
-        gridsize=50, # Adjust for finer or coarser grids
-        cmap='coolwarm', 
-        reduce_C_function=np.mean,  # Aggregate the data by mean
-        mincnt=1
-    )
+    # Define bin sizes for R and phi
+    r_bins = np.linspace(filtered_df_t_h['R'].min(), filtered_df_t_h['R'].max(), 50)  # Adjust 50 to control the resolution
+    phi_bins = np.linspace(filtered_df_t_h['phi'].min(), filtered_df_t_h['phi'].max(), 50)
     
+    # Create 2D histogram with the bins
+    H, r_edges, phi_edges = np.histogram2d(filtered_df_t_h['R'], filtered_df_t_h['phi'], bins=[r_bins, phi_bins], weights=filtered_df_t_h[selected_column_h])
+    
+    # Create a mesh grid for R and phi
+    r_centers = (r_edges[:-1] + r_edges[1:]) / 2
+    phi_centers = (phi_edges[:-1] + phi_edges[1:]) / 2
+    
+    R, PHI = np.meshgrid(r_centers, np.radians(phi_centers))
+    
+    # Convert mesh grid to Cartesian coordinates
+    X = R * np.cos(PHI)
+    Y = R * np.sin(PHI)
+    
+    # Plot using pcolormesh, which allows for non-uniform rectangular bins
+    c = ax.pcolormesh(X, Y, H.T, cmap='coolwarm', shading='auto')
+    
+    # Add labels and title
     ax.set_xlabel('X (kpc)')
     ax.set_ylabel('Y (kpc)')
     ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
-    plt.colorbar(hb, ax=ax, label=selected_column_h)
+    plt.colorbar(c, ax=ax, label=selected_column_h)
     
-    # Show the hexbin plot in Streamlit
+    # Set equal aspect ratio
+    ax.set_aspect('equal', 'box')
+    
+    # Show the plot in Streamlit
     st.pyplot(fig)
-
     st.write("Initially, the heat map shows a wide range of variability with no clear pattern in both height and velocity. After year 0.1, there is a noticeable shift, with height/velocity values becoming more positive and more negative, peaking at 0.6 in the phi range between 170 and 270 degrees (for height), and between 190 and 240 (for velocity). This increase is more pronounced at larger radii, while smaller radii near the center show height values approaching zero with less pronounced variation. Over time, the values shift across different phi regions, and the overall smoothness of the data decreases, indicating evolving patterns and potential changes in underlying processes.")
 
 with tab4:
