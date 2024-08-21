@@ -287,8 +287,8 @@ with tab3:
 
     # Show the heatmap in Streamlit
     st.pyplot(fig)
-    # st.subheader(f"{star_emoji}Heat Map Circular{star_emoji}")
-    # st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
+    st.subheader(f"{star_emoji}Heat Map Circular{star_emoji}")
+    st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
 
     # Plot Circular Distribution
     # fig, ax = plt.subplots(figsize=(10, 8))
@@ -310,61 +310,34 @@ with tab3:
 
     # # Show the scatter plot in Streamlit
     # st.pyplot(fig)
-    # Plot Circular Distribution using Hexbin
-    # Plot Circular Distribution using Rectangles
-    # Generate the plot in Streamlit
-    st.subheader(f"{star_emoji}Heat Map Circular{star_emoji}")
-    st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
+    # Plot Circular Distribution using Scatter with Adjusted Size
+    fig, ax = plt.subplots(figsize=(10, 8))
     
-    # Filtered DataFrame for the selected time
-    filtered_df_t_h = full_df[(full_df['t'] == selected_year_h)]
-    
-    # Convert polar to Cartesian coordinates
+    # Convert polar to Cartesian
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
     
-    # Define bin sizes for R and phi
-    r_bins = np.linspace(filtered_df_t_h['R'].min(), filtered_df_t_h['R'].max(), 50)  # Adjust 50 to control resolution
-    phi_bins = np.linspace(filtered_df_t_h['phi'].min(), filtered_df_t_h['phi'].max(), 50)
+    # Adjust circle size to fill the gaps
+    max_radius = filtered_df_t_h['R'].max()
+    circle_size = 8000 / max_radius  # Increase this value if necessary to fill gaps
     
-    # Create 2D histogram with the bins
-    H, r_edges, phi_edges = np.histogram2d(filtered_df_t_h['R'], filtered_df_t_h['phi'], bins=[r_bins, phi_bins], weights=filtered_df_t_h[selected_column_h])
+    # Scatter plot with increased point size and reduced alpha to fill the space
+    sc = ax.scatter(
+        filtered_df_t_h['x'], 
+        filtered_df_t_h['y'], 
+        c=filtered_df_t_h[selected_column_h], 
+        cmap='coolwarm', 
+        norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), 
+        s=circle_size, 
+        alpha=1  # Full opacity to reduce gaps
+    )
     
-    # Plot Circular Distribution with Touching Rectangles
-    fig, ax = plt.subplots(figsize=(10, 8))
-    
-    # Draw rectangles in polar coordinates and convert to Cartesian
-    for i in range(len(r_edges) - 1):
-        for j in range(len(phi_edges) - 1):
-            r = r_edges[i]
-            dr = r_edges[i + 1] - r_edges[i]
-            phi = np.radians(phi_edges[j])
-            dphi = np.radians(phi_edges[j + 1] - phi_edges[j])
-            
-            # Rectangle vertices
-            x0, y0 = r * np.cos(phi), r * np.sin(phi)
-            x1, y1 = (r + dr) * np.cos(phi), (r + dr) * np.sin(phi)
-            x2, y2 = (r + dr) * np.cos(phi + dphi), (r + dr) * np.sin(phi + dphi)
-            x3, y3 = r * np.cos(phi + dphi), r * np.sin(phi + dphi)
-            
-            # Create a polygon (rectangle) and fill it
-            vertices = np.array([[x0, y0], [x1, y1], [x2, y2], [x3, y3]])
-            color = H[i, j]  # Use the histogram value for coloring
-            ax.fill(vertices[:, 0], vertices[:, 1], color=plt.cm.coolwarm(color), edgecolor='none')
-    
-    # Set equal aspect ratio and labels
-    ax.set_aspect('equal', 'box')
     ax.set_xlabel('X (kpc)')
     ax.set_ylabel('Y (kpc)')
     ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
+    plt.colorbar(sc, ax=ax, label=selected_column_h)
     
-    # Add colorbar
-    norm = plt.Normalize(vmin=-np.max(np.abs(H)), vmax=np.max(np.abs(H)))
-    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=norm)
-    sm.set_array([])
-    plt.colorbar(sm, ax=ax, label=selected_column_h)
-    
-    # Show the plot in Streamlit
+    # Show the scatter plot in Streamlit
     st.pyplot(fig)
     st.write("Initially, the heat map shows a wide range of variability with no clear pattern in both height and velocity. After year 0.1, there is a noticeable shift, with height/velocity values becoming more positive and more negative, peaking at 0.6 in the phi range between 170 and 270 degrees (for height), and between 190 and 240 (for velocity). This increase is more pronounced at larger radii, while smaller radii near the center show height values approaching zero with less pronounced variation. Over time, the values shift across different phi regions, and the overall smoothness of the data decreases, indicating evolving patterns and potential changes in underlying processes.")
 
