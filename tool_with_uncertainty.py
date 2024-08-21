@@ -310,34 +310,46 @@ with tab3:
 
     # # Show the scatter plot in Streamlit
     # st.pyplot(fig)
-    # Plot Circular Distribution using Scatter with Adjusted Size
+    # Plot Circular Distribution using Ellipses
     fig, ax = plt.subplots(figsize=(10, 8))
     
-    # Convert polar to Cartesian
+    # Convert polar to Cartesian coordinates
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
     
-    # Adjust circle size to fill the gaps
+    # Set the size of the ellipses based on the radius
     max_radius = filtered_df_t_h['R'].max()
-    circle_size = 8000 / max_radius  # Increase this value if necessary to fill gaps
     
-    # Scatter plot with increased point size and reduced alpha to fill the space
-    sc = ax.scatter(
-        filtered_df_t_h['x'], 
-        filtered_df_t_h['y'], 
-        c=filtered_df_t_h[selected_column_h], 
-        cmap='coolwarm', 
-        norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), 
-        s=circle_size, 
-        alpha=1  # Full opacity to reduce gaps
-    )
+    # Plot each point as an ellipse
+    for _, row in filtered_df_t_h.iterrows():
+        x = row['x']
+        y = row['y']
+        r = row['R']
+        
+        # Define ellipse size: smaller in the inner regions, larger in the outer regions
+        width = 0.03 * r  # Radial size (adjust this factor for desired effect)
+        height = 0.06 * r  # Angular size (adjust this factor for desired effect)
+        
+        # Create an ellipse patch with appropriate size and color
+        ellipse = Ellipse((x, y), width=width, height=height, angle=np.degrees(row['phi']),
+                          color=plt.cm.coolwarm(Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), 
+                                                         vmax=np.max(np.abs(filtered_df_t_h[selected_column_h])))(row[selected_column_h])),
+                          edgecolor='none')
+        ax.add_patch(ellipse)
     
+    # Set axis labels and title
     ax.set_xlabel('X (kpc)')
     ax.set_ylabel('Y (kpc)')
     ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
-    plt.colorbar(sc, ax=ax, label=selected_column_h)
+    ax.set_aspect('equal', 'box')
     
-    # Show the scatter plot in Streamlit
+    # Add colorbar (manually creating a colorbar)
+    norm = plt.Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h])))
+    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=norm)
+    sm.set_array([])
+    plt.colorbar(sm, ax=ax, label=selected_column_h)
+    
+    # Show the plot in Streamlit
     st.pyplot(fig)
     st.write("Initially, the heat map shows a wide range of variability with no clear pattern in both height and velocity. After year 0.1, there is a noticeable shift, with height/velocity values becoming more positive and more negative, peaking at 0.6 in the phi range between 170 and 270 degrees (for height), and between 190 and 240 (for velocity). This increase is more pronounced at larger radii, while smaller radii near the center show height values approaching zero with less pronounced variation. Over time, the values shift across different phi regions, and the overall smoothness of the data decreases, indicating evolving patterns and potential changes in underlying processes.")
 
