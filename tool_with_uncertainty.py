@@ -255,7 +255,7 @@ with tab2:
             subset_t = filtered_df_t[filtered_df_t['R'] == r_value_t]
             ax.plot(subset_t['phi'], subset_t[selected_column_t], label=f'radius = {r_value_t}')
 
-        ax.set_xlabel(r'$\phi$')
+        ax.set_xlabel(r'$\phi$ (degrees)')
         # Ensure the x-axis starts from 0
         ax.set_xlim(left=0)
         ax.set_ylabel(selected_column_t)
@@ -282,7 +282,7 @@ with tab3:
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(heatmap_data, cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(heatmap_data)), vmax=np.max(np.abs(heatmap_data))), ax=ax)
 
-    ax.set_xlabel(r'$\phi$')
+    ax.set_xlabel(r'$\phi$ (degrees)')
     ax.set_ylabel('Radius (kpc)')
     ax.set_title(f'{selected_column_h} Heatmap at Time = {selected_year_h:.2f}')
 
@@ -362,7 +362,7 @@ with tab4:
     with colum1:
         selected_year_c = st.selectbox('Select year for fit', year_value)
     with colum2:
-        selected_column_t_c = st.selectbox('Select column to plot for fit', ['height', 'velocity'])
+        selected_column_t_c = st.selectbox('Select column to plot for fit', ['height Kpc', 'velocity Km/s'])
     with colum3:
         selected_r_values_t_c = st.selectbox('Select radius value to plot for fit', two_df['R'].unique())
 
@@ -371,12 +371,12 @@ with tab4:
         filtered_df_t_c = two_df[(two_df['t'] == selected_year_c) & (two_df['R'] == selected_r_values_t_c)]
 
         if not filtered_df_t_c.empty:
-            if selected_column_t_c == 'height':
+            if selected_column_t_c == 'height Kpc':
                 A_opt = filtered_df_t_c['A_height'].values[0]
                 C_opt = filtered_df_t_c['C_height'].values[0]
                 D_opt = filtered_df_t_c['D_height'].values[0]
                 y_data = filtered_df_t_c['Zmean']
-            elif selected_column_t_c == 'velocity':
+            elif selected_column_t_c == 'velocity Km/s':
                 A_opt = filtered_df_t_c['A_velocity'].values[0]
                 C_opt = filtered_df_t_c['C_velocity'].values[0]
                 D_opt = filtered_df_t_c['D_velocity'].values[0]
@@ -400,7 +400,8 @@ with tab4:
                 ax.plot(filtered_df_t_c['phi'], y_data, label='Data', color='blue')
                 ax.plot(x_data, y_manual, label='Manual Fit', color='orange', linestyle='--')
                 ax.set_xlabel(r'$\phi$ (degrees)')
-                ax.set_ylabel('Amplitude')
+                ax.set_xlim(left=0)
+                ax.set_ylabel(f"{selected_column_t_c}")
                 ax.legend()
                 st.pyplot(fig)
 
@@ -413,7 +414,8 @@ with tab4:
                 ax.plot(x_data, y_data, label='Data', color='blue')
                 ax.plot(x_data, y_auto, label='Automatic Fit', color='green', linestyle='--')
                 ax.set_xlabel(r'$\phi$ (degrees)')
-                ax.set_ylabel('Amplitude')
+                ax.set_xlim(left=0)
+                ax.set_ylabel(f"{selected_column_t_c}")
                 ax.legend()
                 st.pyplot(fig)
 
@@ -452,6 +454,8 @@ with tab5:
                         label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
 
         ax1.set_ylabel(ylabel1, color='blue', fontsize=14)
+        ax.set_xlim(left=0)
+        ax.set_xlabel('Time (Gyr)')
         ax1.tick_params(axis='y', labelcolor='blue', labelsize=12)
         if ax2:
             ax2.set_ylabel(ylabel2, color='red', fontsize=14)
@@ -594,7 +598,8 @@ with tab6:
     def plot_phase_difference(merged_df):
         plt.figure(figsize=(10, 5))
         plt.plot(merged_df['t'], merged_df['Phase_Difference'], marker='o', linestyle='-', color='b')
-        plt.xlabel('Year')
+        plt.xlabel('Time(Gyr)')
+        ax.set_xlim(left=0)
         plt.ylabel('Phase Difference (degrees)')
         plt.title(f'Phase Difference Between Height and Velocity Over Time (Radius: {selected_R_pha})')
         plt.grid(True)
@@ -684,7 +689,8 @@ with tab6:
             if column_name in diff_df.columns:
                 ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
         
-        ax.set_xlabel('Year (Gyr)')
+        plt.set_xlabel('Time(Gyr)')
+        ax.set_xlim(left=0)
         ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
         ax.set_title(f'{selected_metric.capitalize()} Phase Difference for consecutive radii Over Time')
         ax.legend()
@@ -872,7 +878,7 @@ with tab8:
     fig.update_layout(
         sliders=sliders,
         title=f"{variable} over phi for Radius {selected_R_ani}",
-        xaxis_title='Phi (degrees)',
+        xaxis_title= r'$\phi$ (degrees)',
         yaxis_title=variable,
         yaxis=dict(range=[global_min, global_max]),  # Set the y-axis range
         annotations=[
