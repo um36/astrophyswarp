@@ -312,31 +312,29 @@ with tab3:
     # # Show the scatter plot in Streamlit
     # st.pyplot(fig)
     # Plot Circular Distribution using Ellipses
+    # Plot Circular Distribution using Scatter with Adjusted Size
     fig, ax = plt.subplots(figsize=(10, 8))
     
     # Convert polar to Cartesian coordinates
     filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
     filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
     
-    # Set the size of the ellipses based on the radius
+    # Adjust circle size to ensure they fill the gaps
     max_radius = filtered_df_t_h['R'].max()
     
-    # Plot each point as an ellipse
-    for _, row in filtered_df_t_h.iterrows():
-        x = row['x']
-        y = row['y']
-        r = row['R']
-        
-        # Define ellipse size: smaller in the inner regions, larger in the outer regions
-        width = 0.03 * r  # Radial size (adjust this factor for desired effect)
-        height = 0.06 * r  # Angular size (adjust this factor for desired effect)
-        
-        # Create an ellipse patch with appropriate size and color
-        ellipse = Ellipse((x, y), width=width, height=height, angle=np.degrees(row['phi']),
-                          color=plt.cm.coolwarm(Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), 
-                                                         vmax=np.max(np.abs(filtered_df_t_h[selected_column_h])))(row[selected_column_h])),
-                          edgecolor='none')
-        ax.add_patch(ellipse)
+    # Calculate the size of the circles (increase as necessary)
+    filtered_df_t_h['circle_size'] = (1000 / max_radius) * (filtered_df_t_h['R'] / max_radius) ** 0.5
+    
+    # Scatter plot with adjusted circle sizes to fill the space
+    sc = ax.scatter(
+        filtered_df_t_h['x'], 
+        filtered_df_t_h['y'], 
+        c=filtered_df_t_h[selected_column_h], 
+        cmap='coolwarm', 
+        norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), 
+        s=filtered_df_t_h['circle_size'] * 1000,  # Adjust this factor to increase/decrease size
+        alpha=1  # Full opacity to reduce gaps
+    )
     
     # Set axis labels and title
     ax.set_xlabel('X (kpc)')
@@ -344,11 +342,8 @@ with tab3:
     ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
     ax.set_aspect('equal', 'box')
     
-    # Add colorbar (manually creating a colorbar)
-    norm = plt.Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h])))
-    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=norm)
-    sm.set_array([])
-    plt.colorbar(sm, ax=ax, label=selected_column_h)
+    # Add colorbar
+    plt.colorbar(sc, ax=ax, label=selected_column_h)
     
     # Show the plot in Streamlit
     st.pyplot(fig)
