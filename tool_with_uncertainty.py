@@ -476,9 +476,9 @@ with tab6:
 
     # Get unique radii values from the DataFrame
     r_values = sorted(two_pos_df['R'].unique())
-        
+    metric_selector_one = st.selectbox('height','velocity')
     # Calculate differences
-    diff_df = calculate_differences(two_pos_df, selected_r_values, metric_selector)
+    diff_df = calculate_differences(two_pos_df, selected_r_values, metric_selector_one)
     
     # Apply interval adjustment if required
     if adjusted:
