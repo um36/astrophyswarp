@@ -226,10 +226,10 @@ def calculate_differences(df, selected_r_values, selected_metric):
             continue
         
         # Prepare column names for the difference calculation
-        diff_column = f'{metric}_diff_{r1}_{r2}'
+        diff_column = f'{selected_metric}_diff_{r1}_{r2}'
         # Rename columns to facilitate merging
-        df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
-        df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
+        df_r1 = df_r1[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
+        df_r2 = df_r2[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
         
         # Merge DataFrames on time 't'
         merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
