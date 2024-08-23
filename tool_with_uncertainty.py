@@ -607,31 +607,31 @@ with tab6:
     # Get unique radii values from the DataFrame
     r_values = sorted(two_pos_df['R'].unique())
         
-        # Calculate differences
-        diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
+    # Calculate differences
+    diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
+    
+    # Apply interval adjustment if required
+    if adjusted:
+        diff_df = adjust_phase_interval(diff_df, start_interval, end_interval)
+    
+    fig, ax = plt.subplots(figsize=(14, 8))
+    
+    for i in range(len(selected_r_values) - 1):
+        r1 = selected_r_values[i]
+        r2 = selected_r_values[i + 1]
+        column_name = f'{selected_metric}_diff_{r1}_{r2}'
         
-        # Apply interval adjustment if required
-        if adjusted:
-            diff_df = adjust_phase_interval(diff_df, start_interval, end_interval)
-        
-        fig, ax = plt.subplots(figsize=(14, 8))
-        
-        for i in range(len(selected_r_values) - 1):
-            r1 = selected_r_values[i]
-            r2 = selected_r_values[i + 1]
-            column_name = f'{selected_metric}_diff_{r1}_{r2}'
-            
-            if column_name in diff_df.columns:
-                ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
-        
-        plt.xlabel('Time(Gyr)')
-        ax.set_xlim(left=0)
-        ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
-        ax.set_title(f'{selected_metric.capitalize()} Phase Difference for consecutive radii Over Time')
-        ax.legend()
-        st.pyplot(fig)  # Display plot in Streamlit
-        st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
-               
+        if column_name in diff_df.columns:
+            ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
+    
+    plt.xlabel('Time(Gyr)')
+    ax.set_xlim(left=0)
+    ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
+    ax.set_title(f'{selected_metric.capitalize()} Phase Difference for consecutive radii Over Time')
+    ax.legend()
+    st.pyplot(fig)  # Display plot in Streamlit
+    st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
+           
     # Widgets for user interaction
     newercol1, newercol2 = st.columns(2)
     with newercol1:
