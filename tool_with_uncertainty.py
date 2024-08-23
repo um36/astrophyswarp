@@ -9,58 +9,15 @@ from PIL import Image
 import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+
 # Load the external CSS file
 with open('styles.css') as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-# st.markdown("""
-#     <style>
-#     .main {
-#         background-color: #e6e6fa;  /* Light purple overall background */
-#         color: #4B0082;  /* Indigo text color for contrast */
-#     }
-#     .sidebar .sidebar-content {
-#         background-color: #f0e6f6;  /* Lighter shade for the sidebar */
-#     }
-#     .stButton>button {
-#         background-color: #ff69b4;  /* Pink button color */
-#         color: white;
-#         border-radius: 5px;
-#         border: 2px solid #ff1493;  /* Hot pink outline */
-#     }
-#     .stSelectbox>div>div>input, .stMultiSelect>div>div>input {
-#         background-color: #d6eaff;  /* Light blue background for select box input */
-#         color: #4B0082;  /* Indigo text color */
-#         border: 2px solid #4B0082;  /* Indigo border */
-#         border-radius: 5px;
-#     }
-#     .stSelectbox>div>div>button, .stMultiSelect>div>div>button {
-#         color: #4B0082;  /* Indigo text color */
-#     }
-#     .stSlider>div>div>div>input {
-#         background-color: #4169e1;  /* Royal blue for slider background */
-#     }
-#     .stCheckbox>div:first-child>div>div {
-#         background-color: #4169e1;  /* Royal blue for checkbox background */
-#         border-radius: 5px;
-#     }
-#     .stCheckbox>div:first-child>div>div>div {
-#         color: white;  /* White checkmark color */
-#     }
-#     .stMarkdown>div {
-#         color: #4B0082;  /* Indigo text for markdown */
-#     }
-#     .stSubheader, .stHeader, .stTitle, .stText {
-#         color: #4B0082;  /* Indigo text for headers and general text */
-#     }
-#     </style>
-# """, unsafe_allow_html=True)
-
+    
 # Define emojis
-rocket_emoji = "🚀"
 galaxy_emoji = "🌌"
-space_emoji = "🪐"
 star_emoji = "✨"
+
 st.title(f"{galaxy_emoji}Understanding the Milky Ways Warp!{galaxy_emoji}")
 full_df= pd.read_csv('all_data.tab')
 full_df['phi']=full_df['phi']*10
@@ -80,6 +37,132 @@ def adjust_amplitude_phase(df, amp_col, phase_col):
     # Adjust phase shifts to be within [0, 360)
     df[phase_col] = df[phase_col] % 360
     return df
+
+#function to plot graph
+ def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
+        fig, ax1 = plt.subplots(figsize=(16, 8))
+        ax2 = None
+
+        height_colors = plt.cm.cool(np.linspace(0.3, 0.7, len(selected_radii)))
+        velocity_colors = plt.cm.gist_heat(np.linspace(0.3, 0.7, len(selected_radii)))
+
+        for idx, radius in enumerate(selected_radii):
+            if show_height:
+                df_selected_r_h = df[df['R'] == radius]
+                ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
+                        label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
+
+            if show_velocity:
+                if ax2 is None:
+                    ax2 = ax1.twinx()
+                df_selected_r_v = df[df['R'] == radius]
+                ax2.plot(df_selected_r_v['t'], df_selected_r_v[ycol2], 
+                        label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
+
+        ax1.set_ylabel(ylabel1, color='blue', fontsize=14)
+        ax.set_xlim(left=0)
+        ax.set_xlabel('Time (Gyr)')
+        ax1.tick_params(axis='y', labelcolor='blue', labelsize=12)
+        if ax2:
+            ax2.set_ylabel(ylabel2, color='red', fontsize=14)
+            ax2.tick_params(axis='y', labelcolor='red', labelsize=12)
+        plt.title(title, fontsize=16)
+
+        # Handle legends
+        ax1.legend(loc='upper left', bbox_to_anchor=(1.05, 1), bbox_transform=ax1.transAxes)
+        if ax2:
+            ax2.legend(loc='upper left', bbox_to_anchor=(1.05, 0.9), bbox_transform=ax1.transAxes)
+        plt.tight_layout(rect=[0, 0, 0.75, 1])
+        st.pyplot(fig)
+        return fig
+     
+# Function to adjust phase shifts based on a custom interval
+def adjust_phase_shifts(df, phase_col, start_point):
+    df[phase_col] = (df[phase_col] - start_point) % 360 + start_point
+    return df
+                
+#function to calculate phase difference between height and velocity
+def calculate_phase_difference(combined_params_df, selected_R):
+        # Filter combined parameters DataFrame by selected R value
+        filtered_params = combined_params_df[combined_params_df['R'] == selected_R].copy()
+        
+        # Ensure the DataFrame is sorted by 't'
+        filtered_params = filtered_params.sort_values(by='t')
+        
+        # Calculate the phase difference in 'C' values between height and velocity
+        filtered_params['Phase_Difference'] = filtered_params['C_height'] - filtered_params['C_velocity']
+        
+        # Adjust for differences greater than 180 degrees or less than -180 degrees
+        def adjust_phase_differencehv(diff):
+            if diff > 180:
+                return diff - 360
+            elif diff < -180:
+                return diff + 360
+            else:
+                return diff
+
+        filtered_params['Phase_Difference'] = filtered_params['Phase_Difference'].apply(adjust_phase_differencehv)
+        
+        return filtered_params
+    
+# Function to plot phase difference
+def plot_phase_difference(merged_df):
+    plt.figure(figsize=(10, 5))
+    plt.plot(merged_df['t'], merged_df['Phase_Difference'], marker='o', linestyle='-', color='b')
+    plt.xlabel('Time(Gyr)')
+    ax.set_xlim(left=0)
+    plt.ylabel('Phase Difference (degrees)')
+    plt.title(f'Phase Difference Between Height and Velocity Over Time (Radius: {selected_R_pha})')
+    plt.grid(True)
+    st.pyplot(plt)
+        
+# Calculate phase differences for consecutive R values
+def calculate_differences(df, selected_r_values, metric):
+    differences = []
+    for i in range(len(selected_r_values) - 1):
+        r1 = selected_r_values[i]
+        r2 = selected_r_values[i + 1]
+        
+        df_r1 = df[df['R'] == r1]
+        df_r2 = df[df['R'] == r2]
+        
+        if df_r1.empty or df_r2.empty:
+            continue
+        
+        diff_column = f'{metric}_diff_{r1}_{r2}'
+        df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
+        df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
+        
+        merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
+        merged[diff_column] = merged[f'value_r1'] - merged[f'value_r2']
+        
+        differences.append(merged[['t', diff_column]])
+
+    return pd.concat(differences, ignore_index=True)
+
+ # Adjust phase differences to fit within a specified interval
+def adjust_phase_interval(diff_df, start_interval, end_interval):
+    def adjust_value(value):
+        while value < start_interval:
+            value += 360
+        while value > end_interval:
+            value -= 360
+        return value if start_interval <= value <= end_interval else None
+    
+    for col in diff_df.columns:
+        if 'diff' in col:  # Only apply to difference columns
+            diff_df[col] = diff_df[col].apply(adjust_value)
+    
+    return diff_df.dropna()  # Remove rows where phase differences are out of bounds
+
+# Interactive plot function for phase between radii
+def plot_differences(selected_r_values, selected_metric, adjusted=False):
+    selected_r_values = sorted(selected_r_values)
+    
+    # Ensure consecutive selection
+    if not all(selected_r_values[i] + 1 == selected_r_values[i + 1] for i in range(len(selected_r_values) - 1)):
+        st.write("Please select consecutive R values.")
+        return
 
 # Create four tabs
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Documentation","Initial analysis","Heat Map", "Curve Fit","Model over time","Phase difference","Custom Graph","Animation"])
@@ -402,49 +485,12 @@ with tab4:
         else:
             st.write("No data found for the selected year and radius value.")
     st.write('In conclusion, the automatic sine wave fit aligns closely with the observed data (with uncertainty is smoother than without), confirming that the variables height and velocity follow a periodic pattern with the provided parameters A, C and D. Manual adjustments show how deviations in amplitude, phase shift, and vertical shift can impact the fit, indicating areas where the model may require further refinement. However on the whole, the optimum parameters are slighty better overall.')
+
 with tab5:
 
     # Adjusting amplitude and phase shift values for height and velocity
     two_pos_df = adjust_amplitude_phase(two_df.copy(), 'A_height', 'C_height')
     two_pos_df = adjust_amplitude_phase(two_pos_df, 'A_velocity', 'C_velocity')
-
-    # Function to plot the graph
-    def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
-        fig, ax1 = plt.subplots(figsize=(16, 8))
-        ax2 = None
-
-        height_colors = plt.cm.cool(np.linspace(0.3, 0.7, len(selected_radii)))
-        velocity_colors = plt.cm.gist_heat(np.linspace(0.3, 0.7, len(selected_radii)))
-
-        for idx, radius in enumerate(selected_radii):
-            if show_height:
-                df_selected_r_h = df[df['R'] == radius]
-                ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
-                        label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
-
-            if show_velocity:
-                if ax2 is None:
-                    ax2 = ax1.twinx()
-                df_selected_r_v = df[df['R'] == radius]
-                ax2.plot(df_selected_r_v['t'], df_selected_r_v[ycol2], 
-                        label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
-
-        ax1.set_ylabel(ylabel1, color='blue', fontsize=14)
-        ax.set_xlim(left=0)
-        ax.set_xlabel('Time (Gyr)')
-        ax1.tick_params(axis='y', labelcolor='blue', labelsize=12)
-        if ax2:
-            ax2.set_ylabel(ylabel2, color='red', fontsize=14)
-            ax2.tick_params(axis='y', labelcolor='red', labelsize=12)
-        plt.title(title, fontsize=16)
-
-        # Handle legends
-        ax1.legend(loc='upper left', bbox_to_anchor=(1.05, 1), bbox_transform=ax1.transAxes)
-        if ax2:
-            ax2.legend(loc='upper left', bbox_to_anchor=(1.05, 0.9), bbox_transform=ax1.transAxes)
-        plt.tight_layout(rect=[0, 0, 0.75, 1])
-        st.pyplot(fig)
-        return fig
 
     # Streamlit layout
     st.subheader(f"{star_emoji} Model across all years {star_emoji}")
@@ -506,11 +552,6 @@ with tab5:
             st.write('After adjusting the phase shift interval, this graph shows the updated phase shift (C) for height and velocity data over time. By customising the start point of the 360-degree interval, we can fine-tune the phase shift to produce a smoother graph that better aligns with the data points. This adjustment helps in choosing the optimal interval that reveals the most consistent patterns in the phase shift model for the selected radius values.')
             start_point = st.number_input("Start Point for 360-degree Interval", value=0, step=1)
 
-            # Function to adjust phase shifts based on a custom interval
-            def adjust_phase_shifts(df, phase_col, start_point):
-                df[phase_col] = (df[phase_col] - start_point) % 360 + start_point
-                return df
-
             update_graph = st.checkbox('See phase shift updated Graph')
             if update_graph:
                 adjusted_height_df = adjust_phase_shifts(two_pos_df.copy(), 'C_height', start_point)
@@ -547,40 +588,6 @@ with tab5:
             else:
                 st.error("No graph to save. Please create or update a graph first.")
 with tab6:
-    def calculate_phase_difference(combined_params_df, selected_R):
-        # Filter combined parameters DataFrame by selected R value
-        filtered_params = combined_params_df[combined_params_df['R'] == selected_R].copy()
-        
-        # Ensure the DataFrame is sorted by 't'
-        filtered_params = filtered_params.sort_values(by='t')
-        
-        # Calculate the phase difference in 'C' values between height and velocity
-        filtered_params['Phase_Difference'] = filtered_params['C_height'] - filtered_params['C_velocity']
-        
-        # Adjust for differences greater than 180 degrees or less than -180 degrees
-        def adjust_phase_differencehv(diff):
-            if diff > 180:
-                return diff - 360
-            elif diff < -180:
-                return diff + 360
-            else:
-                return diff
-
-        filtered_params['Phase_Difference'] = filtered_params['Phase_Difference'].apply(adjust_phase_differencehv)
-        
-        return filtered_params
-
-    # Function to plot phase difference
-    def plot_phase_difference(merged_df):
-        plt.figure(figsize=(10, 5))
-        plt.plot(merged_df['t'], merged_df['Phase_Difference'], marker='o', linestyle='-', color='b')
-        plt.xlabel('Time(Gyr)')
-        ax.set_xlim(left=0)
-        plt.ylabel('Phase Difference (degrees)')
-        plt.title(f'Phase Difference Between Height and Velocity Over Time (Radius: {selected_R_pha})')
-        plt.grid(True)
-        st.pyplot(plt)
-
     st.subheader(f"{star_emoji} Difference in Phase shift H and V{star_emoji}")
     st.write('This analysis explores the phase shift difference between height and velocity for a selected radius (R) over time. The phase shift difference is calculated by subtracting the velocity phase shift from the height phase shift. Any differences outside the range of ±180 degrees are adjusted to maintain consistency. This visualisation helps in understanding how the phase relationships between height and velocity evolve over time for a specific radius, highlighting periods of synchronisation or divergence.')
     selected_R_pha = st.selectbox('Select Radius (R):', two_df['R'].unique())
@@ -599,54 +606,6 @@ with tab6:
 
     # Get unique radii values from the DataFrame
     r_values = sorted(two_pos_df['R'].unique())
-
-    # Calculate differences for consecutive R values
-    def calculate_differences(df, selected_r_values, metric):
-        differences = []
-        for i in range(len(selected_r_values) - 1):
-            r1 = selected_r_values[i]
-            r2 = selected_r_values[i + 1]
-            
-            df_r1 = df[df['R'] == r1]
-            df_r2 = df[df['R'] == r2]
-            
-            if df_r1.empty or df_r2.empty:
-                continue
-            
-            diff_column = f'{metric}_diff_{r1}_{r2}'
-            df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
-            df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
-            
-            merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
-            merged[diff_column] = merged[f'value_r1'] - merged[f'value_r2']
-            
-            differences.append(merged[['t', diff_column]])
-
-        return pd.concat(differences, ignore_index=True)
-
-    # Adjust phase differences to fit within a specified interval
-    def adjust_phase_interval(diff_df, start_interval, end_interval):
-        def adjust_value(value):
-            while value < start_interval:
-                value += 360
-            while value > end_interval:
-                value -= 360
-            return value if start_interval <= value <= end_interval else None
-        
-        for col in diff_df.columns:
-            if 'diff' in col:  # Only apply to difference columns
-                diff_df[col] = diff_df[col].apply(adjust_value)
-        
-        return diff_df.dropna()  # Remove rows where phase differences are out of bounds
-
-    # Interactive plot function
-    def plot_differences(selected_r_values, selected_metric, adjusted=False):
-        selected_r_values = sorted(selected_r_values)
-        
-        # Ensure consecutive selection
-        if not all(selected_r_values[i] + 1 == selected_r_values[i + 1] for i in range(len(selected_r_values) - 1)):
-            st.write("Please select consecutive R values.")
-            return
         
         # Calculate differences
         diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
@@ -708,8 +667,6 @@ with tab6:
             plot_differences(r_selector, metric_selector, adjusted=True)
 
         # Save graph as
-        
-
         filename = st.text_input("Enter the filename (without extension):", "graph")
         
         if st.button('Save Graph'):
