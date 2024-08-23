@@ -38,43 +38,43 @@ def adjust_amplitude_phase(df, amp_col, phase_col):
     df[phase_col] = df[phase_col] % 360
     return df
 
-#function to plot graph
+ #function to plot graph
  def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
-        fig, ax1 = plt.subplots(figsize=(16, 8))
-        ax2 = None
+    fig, ax1 = plt.subplots(figsize=(16, 8))
+    ax2 = None
 
-        height_colors = plt.cm.cool(np.linspace(0.3, 0.7, len(selected_radii)))
-        velocity_colors = plt.cm.gist_heat(np.linspace(0.3, 0.7, len(selected_radii)))
+    height_colors = plt.cm.cool(np.linspace(0.3, 0.7, len(selected_radii)))
+    velocity_colors = plt.cm.gist_heat(np.linspace(0.3, 0.7, len(selected_radii)))
 
-        for idx, radius in enumerate(selected_radii):
-            if show_height:
-                df_selected_r_h = df[df['R'] == radius]
-                ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
-                        label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
+    for idx, radius in enumerate(selected_radii):
+        if show_height:
+            df_selected_r_h = df[df['R'] == radius]
+            ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
+                    label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
 
-            if show_velocity:
-                if ax2 is None:
-                    ax2 = ax1.twinx()
-                df_selected_r_v = df[df['R'] == radius]
-                ax2.plot(df_selected_r_v['t'], df_selected_r_v[ycol2], 
-                        label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
+        if show_velocity:
+            if ax2 is None:
+                ax2 = ax1.twinx()
+            df_selected_r_v = df[df['R'] == radius]
+            ax2.plot(df_selected_r_v['t'], df_selected_r_v[ycol2], 
+                    label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
 
-        ax1.set_ylabel(ylabel1, color='blue', fontsize=14)
-        ax.set_xlim(left=0)
-        ax.set_xlabel('Time (Gyr)')
-        ax1.tick_params(axis='y', labelcolor='blue', labelsize=12)
-        if ax2:
-            ax2.set_ylabel(ylabel2, color='red', fontsize=14)
-            ax2.tick_params(axis='y', labelcolor='red', labelsize=12)
-        plt.title(title, fontsize=16)
+    ax1.set_ylabel(ylabel1, color='blue', fontsize=14)
+    ax.set_xlim(left=0)
+    ax.set_xlabel('Time (Gyr)')
+    ax1.tick_params(axis='y', labelcolor='blue', labelsize=12)
+    if ax2:
+        ax2.set_ylabel(ylabel2, color='red', fontsize=14)
+        ax2.tick_params(axis='y', labelcolor='red', labelsize=12)
+    plt.title(title, fontsize=16)
 
-        # Handle legends
-        ax1.legend(loc='upper left', bbox_to_anchor=(1.05, 1), bbox_transform=ax1.transAxes)
-        if ax2:
-            ax2.legend(loc='upper left', bbox_to_anchor=(1.05, 0.9), bbox_transform=ax1.transAxes)
-        plt.tight_layout(rect=[0, 0, 0.75, 1])
-        st.pyplot(fig)
-        return fig
+    # Handle legends
+    ax1.legend(loc='upper left', bbox_to_anchor=(1.05, 1), bbox_transform=ax1.transAxes)
+    if ax2:
+        ax2.legend(loc='upper left', bbox_to_anchor=(1.05, 0.9), bbox_transform=ax1.transAxes)
+    plt.tight_layout(rect=[0, 0, 0.75, 1])
+    st.pyplot(fig)
+    return fig
      
 # Function to adjust phase shifts based on a custom interval
 def adjust_phase_shifts(df, phase_col, start_point):
