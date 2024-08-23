@@ -3,17 +3,12 @@ import pandas as pd
 from matplotlib.patches import Ellipse
 import streamlit as st
 import numpy as np
-from scipy.optimize import curve_fit
 import seaborn as sns
 from matplotlib.colors import Normalize
-from matplotlib.animation import FuncAnimation, PillowWriter
 from PIL import Image
 import os
-import imageio
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-import plotly.io as pio
-from ipywidgets import interact, widgets
 
 
 st.markdown("""
@@ -291,27 +286,6 @@ with tab3:
     st.subheader(f"{star_emoji}Heat Map Circular{star_emoji}")
     st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
 
-    # Plot Circular Distribution
-    # fig, ax = plt.subplots(figsize=(10, 8))
-
-    # # Convert polar to Cartesian
-    # filtered_df_t_h['x'] = filtered_df_t_h['R'] * np.cos(np.radians(filtered_df_t_h['phi']))
-    # filtered_df_t_h['y'] = filtered_df_t_h['R'] * np.sin(np.radians(filtered_df_t_h['phi']))
-
-    # # Adjust circle size
-    # max_radius = filtered_df_t_h['R'].max()
-    # circle_size = 2000 / max_radius  # Adjust 2000 as necessary to get the desired effect
-
-    # # Scatter plot for height
-    # sc = ax.scatter(filtered_df_t_h['x'], filtered_df_t_h['y'], c=filtered_df_t_h[selected_column_h], cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(filtered_df_t_h[selected_column_h])), vmax=np.max(np.abs(filtered_df_t_h[selected_column_h]))), s=circle_size)
-    # ax.set_xlabel('X (kpc)')
-    # ax.set_ylabel('Y (kpc)')
-    # ax.set_title(f'{selected_column_h} Distribution at Time = {selected_year_h:.2f}')
-    # plt.colorbar(sc, ax=ax, label='Height')
-
-    # # Show the scatter plot in Streamlit
-    # st.pyplot(fig)
-    # Plot Circular Distribution using Ellipses
    # Plot Circular Distribution using Scatter with Adjusted Size
     fig, ax = plt.subplots(figsize=(10, 8))
     
