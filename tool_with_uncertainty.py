@@ -465,7 +465,7 @@ with tab6:
     # Calculate phase difference
     merged_df = calculate_phase_difference(two_pos_df, selected_R_pha)
     # Plot phase difference
-    plot_phase_difference(merged_df)
+    plot_phase_difference(merged_df, selected_R_pha)
     st.write('With the above plot we are looking at points with the value of 90 degrees to be where velocity and height data are in sync. The reason for this is because the phase difference between velocity and displacement in simple harmonic motion is a quarter-cycle, or 90 degrees. Due to velocity being the derivative of displacement, and the derivative of a sine or cosine function is shifted by a quarter-cycle. Overall, from the graph all radii show at the beginning timeframe large phase shift differences as the velocity and height are still affected by the interaction with the dwarf galaxy and this disturbance causes them to be out of sync. In contrast some radii experience times where height and velocity difference is fluctuating around 90 or -90 degrees, however this time period varies for each radii without a set pattern. In addition to this, evidence in research suggests that in the Milky way we see that the peaks of height and velocity are misaligned by about 50 degrees for the warp. The simple theory is 90 degrees but the graph above shows that the warp is more complex.')
 
     st.subheader(f"{star_emoji}Phase Difference Between Radii{star_emoji}")
