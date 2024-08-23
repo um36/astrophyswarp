@@ -198,8 +198,6 @@ def plot_phase_difference(merged_df, selected_R_pha):
     
     # Display the plot using Streamlit
     st.pyplot(plt)
-    # Clear the current figure to avoid overlap with future plots
-    plt.clf()
         
 # Calculate phase differences for consecutive R values
 def calculate_differences(df, selected_r_values, metric):
