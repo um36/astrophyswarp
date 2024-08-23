@@ -9,50 +9,52 @@ from PIL import Image
 import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+# Load the external CSS file
+with open('styles.css') as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-
-st.markdown("""
-    <style>
-    .main {
-        background-color: #e6e6fa;  /* Light purple overall background */
-        color: #4B0082;  /* Indigo text color for contrast */
-    }
-    .sidebar .sidebar-content {
-        background-color: #f0e6f6;  /* Lighter shade for the sidebar */
-    }
-    .stButton>button {
-        background-color: #ff69b4;  /* Pink button color */
-        color: white;
-        border-radius: 5px;
-        border: 2px solid #ff1493;  /* Hot pink outline */
-    }
-    .stSelectbox>div>div>input, .stMultiSelect>div>div>input {
-        background-color: #d6eaff;  /* Light blue background for select box input */
-        color: #4B0082;  /* Indigo text color */
-        border: 2px solid #4B0082;  /* Indigo border */
-        border-radius: 5px;
-    }
-    .stSelectbox>div>div>button, .stMultiSelect>div>div>button {
-        color: #4B0082;  /* Indigo text color */
-    }
-    .stSlider>div>div>div>input {
-        background-color: #4169e1;  /* Royal blue for slider background */
-    }
-    .stCheckbox>div:first-child>div>div {
-        background-color: #4169e1;  /* Royal blue for checkbox background */
-        border-radius: 5px;
-    }
-    .stCheckbox>div:first-child>div>div>div {
-        color: white;  /* White checkmark color */
-    }
-    .stMarkdown>div {
-        color: #4B0082;  /* Indigo text for markdown */
-    }
-    .stSubheader, .stHeader, .stTitle, .stText {
-        color: #4B0082;  /* Indigo text for headers and general text */
-    }
-    </style>
-""", unsafe_allow_html=True)
+# st.markdown("""
+#     <style>
+#     .main {
+#         background-color: #e6e6fa;  /* Light purple overall background */
+#         color: #4B0082;  /* Indigo text color for contrast */
+#     }
+#     .sidebar .sidebar-content {
+#         background-color: #f0e6f6;  /* Lighter shade for the sidebar */
+#     }
+#     .stButton>button {
+#         background-color: #ff69b4;  /* Pink button color */
+#         color: white;
+#         border-radius: 5px;
+#         border: 2px solid #ff1493;  /* Hot pink outline */
+#     }
+#     .stSelectbox>div>div>input, .stMultiSelect>div>div>input {
+#         background-color: #d6eaff;  /* Light blue background for select box input */
+#         color: #4B0082;  /* Indigo text color */
+#         border: 2px solid #4B0082;  /* Indigo border */
+#         border-radius: 5px;
+#     }
+#     .stSelectbox>div>div>button, .stMultiSelect>div>div>button {
+#         color: #4B0082;  /* Indigo text color */
+#     }
+#     .stSlider>div>div>div>input {
+#         background-color: #4169e1;  /* Royal blue for slider background */
+#     }
+#     .stCheckbox>div:first-child>div>div {
+#         background-color: #4169e1;  /* Royal blue for checkbox background */
+#         border-radius: 5px;
+#     }
+#     .stCheckbox>div:first-child>div>div>div {
+#         color: white;  /* White checkmark color */
+#     }
+#     .stMarkdown>div {
+#         color: #4B0082;  /* Indigo text for markdown */
+#     }
+#     .stSubheader, .stHeader, .stTitle, .stText {
+#         color: #4B0082;  /* Indigo text for headers and general text */
+#     }
+#     </style>
+# """, unsafe_allow_html=True)
 
 # Define emojis
 rocket_emoji = "🚀"
