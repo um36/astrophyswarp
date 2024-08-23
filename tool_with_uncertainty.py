@@ -478,7 +478,7 @@ with tab6:
     r_values = sorted(two_pos_df['R'].unique())
         
     # Calculate differences
-    diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
+    diff_df = calculate_differences(two_pos_df, selected_r_values, metric_selector)
     
     # Apply interval adjustment if required
     if adjusted:
