@@ -128,21 +128,6 @@ def adjust_phase_shifts(df, phase_col, start_point):
     # Adjust the phase values based on the start_point and wrap around 360 degrees
     df[phase_col] = (df[phase_col] - start_point) % 360 + start_point
     return df  # Return the modified DataFrame
-
-# Adjust phase difference to ensure it is within the range of -180 to 180 degrees
-    def adjust_phase_differencehv(diff):
-        """
-        Adjusts the phase difference to be within the range of -180 to 180 degrees. THis is mainly linked to the below function.
-        Parameters:
-        diff = float: The original raw phase difference value.
-        Returns = float: The adjusted phase difference value.
-        """
-        if diff > 180:
-            return diff - 360
-        elif diff < -180:
-            return diff + 360
-        else:
-            return diff
            
 #function to calculate phase difference between height and velocity
 def calculate_phase_difference(combined_params_df, selected_R):
@@ -159,6 +144,20 @@ def calculate_phase_difference(combined_params_df, selected_R):
     Returns = pd.DataFrame: A DataFrame with the filtered and sorted data, including the calculated
     'Phase_Difference' column.
     """
+   # Adjust phase difference to ensure it is within the range of -180 to 180 degrees
+    def adjust_phase_differencehv(diff):
+        """
+        Adjusts the phase difference to be within the range of -180 to 180 degrees. THis is mainly linked to the below function.
+        Parameters:
+        diff = float: The original raw phase difference value.
+        Returns = float: The adjusted phase difference value.
+        """
+        if diff > 180:
+            return diff - 360
+        elif diff < -180:
+            return diff + 360
+        else:
+            return diff
     # Filter combined parameters DataFrame by selected R value
     filtered_params = combined_params_df[combined_params_df['R'] == selected_R].copy()
     # Ensure the DataFrame is sorted by time 't'
@@ -243,23 +242,6 @@ def calculate_differences(df, selected_r_values, metric):
 
     # Concatenate all the difference DataFrames into a single DataFrame
     return pd.concat(differences, ignore_index=True)
-
-def adjust_value(value):
-        """
-        Adjusts a single phase difference value to ensure it falls within the specified interval.
-        Mainly used for the below function.
-        Parameters:
-        - value (float): The phase difference value to be adjusted. This is selected by the user.
-        Returns = float or None: The adjusted value if within the interval, otherwise None.
-        """
-        # Wrap the value around if it's less than the start interval
-        while value < start_interval:
-            value += 360
-        # Wrap the value around if it's greater than the end interval
-        while value > end_interval:
-            value -= 360
-        # Check if the adjusted value is within the specified interval
-        return value if start_interval <= value <= end_interval else None
    
 # Adjust phase differences to fit within a specified interval
 def adjust_phase_interval(diff_df, start_interval, end_interval):
@@ -276,6 +258,23 @@ def adjust_phase_interval(diff_df, start_interval, end_interval):
     Returns = pd.DataFrame: The adjusted DataFrame with phase differences wrapped within the specified
     interval, and rows with out-of-bounds values removed.
     """
+    def adjust_value(value):
+       """
+       Adjusts a single phase difference value to ensure it falls within the specified interval.
+       Mainly used for the below function.
+       Parameters:
+       value (float): The phase difference value to be adjusted. This is selected by the user.
+       Returns = float or None: The adjusted value if within the interval, otherwise None.
+       """
+       # Wrap the value around if it's less than the start interval
+       while value < start_interval:
+          value += 360
+       # Wrap the value around if it's greater than the end interval
+       while value > end_interval:
+          value -= 360
+       # Check if the adjusted value is within the specified interval
+       return value if start_interval <= value <= end_interval else None
+
     # Apply the adjustment function to each column with 'diff' in its name
     for col in diff_df.columns:
         if 'diff' in col:
