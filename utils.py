@@ -200,7 +200,7 @@ def plot_phase_difference(merged_df, selected_R_pha):
     st.pyplot(plt)
         
 # Calculate phase differences for consecutive R values
-def calculate_differences(df, selected_r_values, metric):
+def calculate_differences(df, selected_r_values, selected_metric):
     """
     This function computes the difference of a specified metric (e.g., 'height' or 'velocity')
     between consecutive values of R. It assumes that the input DataFrame contains columns 
