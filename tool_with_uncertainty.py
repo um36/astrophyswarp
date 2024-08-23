@@ -18,11 +18,12 @@ with open('styles.css') as f:
 galaxy_emoji = "🌌"
 star_emoji = "✨"
 
-st.title(f"{galaxy_emoji}Understanding the Milky Ways Warp!{galaxy_emoji}")
-full_df= pd.read_csv('all_data.tab')
-full_df['phi']=full_df['phi']*10
-#put tabs in for general graphs, curve fit, heatmaps
-two_df= pd.read_csv('total_data_df.csv')
+st.title(f"{galaxy_emoji}Understanding the Milky Way's Warp!{galaxy_emoji}")
+full_df = pd.read_csv('all_data.tab')
+full_df['phi'] = full_df['phi'] * 10
+
+# Tabs for general graphs, curve fit, heatmaps
+two_df = pd.read_csv('total_data_df.csv')
 
 # Function to define the sine function
 def sine_function(phi, A, C, D):
@@ -31,15 +32,15 @@ def sine_function(phi, A, C, D):
 # Function to adjust amplitude and phase shift values
 def adjust_amplitude_phase(df, amp_col, phase_col):
     # Adjust negative amplitudes
-    df[phase_col] = np.where(df[amp_col] < 0, df[phase_col] + 180, df[phase_col])
+    df[phase_col] = np.where(df[amp_col] < 0, df[phase_col] + 180, df[amp_col])
     df[amp_col] = np.abs(df[amp_col])
     
     # Adjust phase shifts to be within [0, 360)
     df[phase_col] = df[phase_col] % 360
     return df
 
- #function to plot graph
- def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
+# Function to plot graph
+def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
     fig, ax1 = plt.subplots(figsize=(16, 8))
     ax2 = None
 
@@ -50,8 +51,7 @@ def adjust_amplitude_phase(df, amp_col, phase_col):
         if show_height:
             df_selected_r_h = df[df['R'] == radius]
             ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
-                    label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
-
+                     label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
         if show_velocity:
             if ax2 is None:
                 ax2 = ax1.twinx()
