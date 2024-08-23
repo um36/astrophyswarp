@@ -9,7 +9,19 @@ from PIL import Image
 import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-from utils import sine_function, adjust_amplitude_phase, plot_graph, adjust_phase_shifts, calculate_phase_difference, adjust_phase_differencehv, plot_phase_difference, calculate_differences, adjust_phase_interval, adjust_value,  plot_differences
+from utils import (
+    sine_function, 
+    adjust_amplitude_phase, 
+    plot_graph, 
+    adjust_phase_shifts, 
+    calculate_phase_difference, 
+    adjust_phase_differencehv, 
+    plot_phase_difference, 
+    calculate_differences, 
+    adjust_phase_interval, 
+    adjust_value,  
+    plot_differences 
+)
 
 # Load the external CSS file
 with open('styles.css') as f:
