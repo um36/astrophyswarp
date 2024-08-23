@@ -485,7 +485,7 @@ with tab6:
         )
     with newercol2:
         metric_selector = st.radio(
-            'Select Metric:',
+            'Select new Metric:',
             options=['height', 'velocity'],
             index=0,
             horizontal=True  # Display options horizontally
