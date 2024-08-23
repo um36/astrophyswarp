@@ -478,7 +478,7 @@ with tab6:
     r_values = sorted(two_pos_df['R'].unique())
 
     # Calculate differences for consecutive R values
-    def calculate_differences(df, selected_r_values, metric):
+    def calculate_difference(df, selected_r_values, metric):
         differences = []
         for i in range(len(selected_r_values) - 1):
             r1 = selected_r_values[i]
@@ -501,23 +501,8 @@ with tab6:
 
         return pd.concat(differences, ignore_index=True)
 
-    # Adjust phase differences to fit within a specified interval
-    def adjust_phase_interval(diff_df, start_interval, end_interval):
-        def adjust_value(value):
-            while value < start_interval:
-                value += 360
-            while value > end_interval:
-                value -= 360
-            return value if start_interval <= value <= end_interval else None
-        
-        for col in diff_df.columns:
-            if 'diff' in col:  # Only apply to difference columns
-                diff_df[col] = diff_df[col].apply(adjust_value)
-        
-        return diff_df.dropna()  # Remove rows where phase differences are out of bounds
-
     # Interactive plot function
-    def plot_differences(selected_r_values, selected_metric, adjusted=False):
+    def plot_difference(selected_r_values, selected_metric, adjusted=False):
         selected_r_values = sorted(selected_r_values)
         
         # Ensure consecutive selection
@@ -526,7 +511,7 @@ with tab6:
             return
         
         # Calculate differences
-        diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
+        diff_df = calculate_difference(two_pos_df, selected_r_values, selected_metric)
         
         # Apply interval adjustment if required
         if adjusted:
@@ -569,7 +554,7 @@ with tab6:
         st.write("No R values selected, so data cannot be plotted.")
     else:
         # Plot the initial phase differences
-        plot_differences(r_selector, metric_selector)
+        plot_difference(r_selector, metric_selector)
         
         # User input for interval adjustment
         st.write(f"{star_emoji}Adjust Phase Shift Interval{star_emoji}")
