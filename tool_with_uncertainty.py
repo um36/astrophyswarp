@@ -9,6 +9,7 @@ from PIL import Image
 import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
+from utils import (
 
 # Load the external CSS file
 with open('styles.css') as f:
