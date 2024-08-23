@@ -489,15 +489,15 @@ with tab6:
     for i in range(len(selected_r_values) - 1):
         r1 = selected_r_values[i]
         r2 = selected_r_values[i + 1]
-        column_name = f'{selected_metric}_diff_{r1}_{r2}'
+        column_name = f'{metric_selector_one}_diff_{r1}_{r2}'
         
         if column_name in diff_df.columns:
-            ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
+            ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{metric_selector_one.capitalize()} diff {r1}-{r2}')
     
     plt.xlabel('Time(Gyr)')
     ax.set_xlim(left=0)
-    ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
-    ax.set_title(f'{selected_metric.capitalize()} Phase Difference for consecutive radii Over Time')
+    ax.set_ylabel(f'{metric_selector_one.capitalize()} Difference')
+    ax.set_title(f'{metric_selector_one.capitalize()} Phase Difference for consecutive radii Over Time')
     ax.legend()
     st.pyplot(fig)  # Display plot in Streamlit
     st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
