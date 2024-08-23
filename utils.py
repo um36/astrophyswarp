@@ -202,50 +202,44 @@ def plot_phase_difference(merged_df, selected_R_pha):
 # Calculate phase differences for consecutive R values
 def calculate_differences(df, selected_r_values, selected_metric):
     """
-    Computes the difference of a specified metric (e.g., 'height' or 'velocity')
-    between consecutive values of R. Assumes input DataFrame contains columns 
-    for R values, time, and the metric of interest.
+    This function computes the difference of a specified metric (e.g., 'height' or 'velocity')
+    between consecutive values of R. It assumes that the input DataFrame contains columns 
+    for R values, time, and the metric of interest. For each pair of consecutive R values, it
+    merges the data based on time and calculates the difference in the metric values.
     Parameters:
-    df = pd.DataFrame: DataFrame containing columns 'R', 't' (time), and the metric of interest.
-    selected_r_values = list of floats: List of R values for which differences are to be calculated.
-    selected_metric = str: The metric to calculate differences for (e.g., 'height' or 'velocity').
-    Returns:
-    pd.DataFrame: A DataFrame containing time and the calculated differences for each pair of 
+    df = pd.DataFrame: DataFrame containing columns 'R', 't' (time), and the metric of interest (e.g., 'C_height', 'C_velocity').
+    selected_r_values = list of floats: List of R values for which differences are to be calculated range between 5.5 and 15.5 and must be consecutive.
+    metric = str: The metric to calculate differences for, e.g., 'height' or 'velocity'.
+    Returns = pd.DataFrame: A DataFrame containing time and the calculated differences for each pair of 
     consecutive R values.
     """
     differences = []
-    
+    # Iterate through each pair of consecutive R values
     for i in range(len(selected_r_values) - 1):
         r1 = selected_r_values[i]
         r2 = selected_r_values[i + 1]
-        
+        # Filter the DataFrame for the current and next R values
         df_r1 = df[df['R'] == r1]
         df_r2 = df[df['R'] == r2]
-        
+        # Skip if either DataFrame is empty
         if df_r1.empty or df_r2.empty:
-            print(f"No data for R={r1} or R={r2}")
             continue
         
+        # Prepare column names for the difference calculation
         diff_column = f'{selected_metric}_diff_{r1}_{r2}'
-        
-        # Ensure that the columns exist
-        if f'C_{selected_metric}' not in df_r1.columns or f'C_{selected_metric}' not in df_r2.columns:
-            print(f"Column C_{selected_metric} is missing in the DataFrame.")
-            continue
-        
+        # Rename columns to facilitate merging
         df_r1 = df_r1[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
         df_r2 = df_r2[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
         
+        # Merge DataFrames on time 't'
         merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
-        
+        # Calculate the difference between the two consecutive R values
         merged[diff_column] = merged['value_r1'] - merged['value_r2']
-        differences.append(merged[['t', diff_column']])
+        # Append the result to the list of differences
+        differences.append(merged[['t', diff_column]])
 
-    if differences:
-        return pd.concat(differences, ignore_index=True)
-    else:
-        print("No differences calculated.")
-        return pd.DataFrame()  # Return an empty DataFrame if no differences were calculated
+    # Concatenate all the difference DataFrames into a single DataFrame
+    return pd.concat(differences, ignore_index=True)
    
 # Adjust phase differences to fit within a specified interval
 def adjust_phase_interval(diff_df, start_interval, end_interval):
