@@ -214,32 +214,52 @@ def calculate_differences(df, selected_r_values, selected_metric):
     consecutive R values.
     """
     differences = []
-    # Iterate through each pair of consecutive R values
+
+    # Ensure selected_metric is valid
+    if selected_metric not in ['height', 'velocity']:
+        raise ValueError("Selected metric must be either 'height' or 'velocity'.")
+
+    # Debugging: Print selected R values
+    print(f"Selected R values: {selected_r_values}")
+
     for i in range(len(selected_r_values) - 1):
         r1 = selected_r_values[i]
         r2 = selected_r_values[i + 1]
+
         # Filter the DataFrame for the current and next R values
         df_r1 = df[df['R'] == r1]
         df_r2 = df[df['R'] == r2]
-        # Skip if either DataFrame is empty
+
+        # Debugging: Print DataFrames
+        print(f"DataFrame for R={r1}:\n", df_r1.head())
+        print(f"DataFrame for R={r2}:\n", df_r2.head())
+
         if df_r1.empty or df_r2.empty:
+            print(f"Warning: No data for R={r1} or R={r2}.")
             continue
-        
+
         # Prepare column names for the difference calculation
         diff_column = f'{selected_metric}_diff_{r1}_{r2}'
-        # Rename columns to facilitate merging
-        df_r1 = df_r1[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
-        df_r2 = df_r2[['t', f'C_{selected_metric}']].rename(columns={f'C_{selected_metric}': 'value'})
-        
-        # Merge DataFrames on time 't'
-        merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
-        # Calculate the difference between the two consecutive R values
-        merged[diff_column] = merged['value_r1'] - merged['value_r2']
-        # Append the result to the list of differences
-        differences.append(merged[['t', diff_column]])
+        col_name = f'C_{selected_metric}'
 
-    # Concatenate all the difference DataFrames into a single DataFrame
-    return pd.concat(differences, ignore_index=True)
+        if col_name not in df_r1.columns or col_name not in df_r2.columns:
+            print(f"Error: Metric column '{col_name}' is missing in DataFrame.")
+            continue
+
+        df_r1 = df_r1[['t', col_name]].rename(columns={col_name: 'value'})
+        df_r2 = df_r2[['t', col_name]].rename(columns={col_name: 'value'})
+
+        merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
+
+        # Calculate the difference
+        merged[diff_column] = merged['value_r1'] - merged['value_r2']
+        differences.append(merged[['t', diff_column']])
+
+    if differences:
+        return pd.concat(differences, ignore_index=True)
+    else:
+        print("No differences calculated.")
+        return pd.DataFrame()
    
 # Adjust phase differences to fit within a specified interval
 def adjust_phase_interval(diff_df, start_interval, end_interval):
