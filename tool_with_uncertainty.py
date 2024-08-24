@@ -465,74 +465,150 @@ with tab6:
     plot_phase_difference(merged_df, selected_R_pha)
     st.write('With the above plot we are looking at points with the value of 90 degrees to be where velocity and height data are in sync. The reason for this is because the phase difference between velocity and displacement in simple harmonic motion is a quarter-cycle, or 90 degrees. Due to velocity being the derivative of displacement, and the derivative of a sine or cosine function is shifted by a quarter-cycle. Overall, from the graph all radii show at the beginning timeframe large phase shift differences as the velocity and height are still affected by the interaction with the dwarf galaxy and this disturbance causes them to be out of sync. In contrast some radii experience times where height and velocity difference is fluctuating around 90 or -90 degrees, however this time period varies for each radii without a set pattern. In addition to this, evidence in research suggests that in the Milky way we see that the peaks of height and velocity are misaligned by about 50 degrees for the warp. The simple theory is 90 degrees but the graph above shows that the warp is more complex.')
 
-    # st.subheader(f"{star_emoji}Phase Difference Between Radii{star_emoji}")
-    # st.write("This section focuses on the phase shift differences across consecutive radius values for either height or velocity. By analysing these differences, we can observe how phase shifts vary across different regions. This visualisation makes it easier to spot patterns or unusual changes in the system's behavior.")
-    # # Adjusting amplitude and phase shift values for height and velocity
-    # two_pos_df = adjust_amplitude_phase(two_df, 'A_height', 'C_height')
-    # two_pos_df = adjust_amplitude_phase(two_pos_df, 'A_velocity', 'C_velocity')
+    st.subheader(f"{star_emoji}Phase Difference Between Radii{star_emoji}")
+    st.write("This section focuses on the phase shift differences across consecutive radius values for either height or velocity. By analysing these differences, we can observe how phase shifts vary across different regions. This visualisation makes it easier to spot patterns or unusual changes in the system's behavior.")
+    # Adjusting amplitude and phase shift values for height and velocity
+    two_pos_df = adjust_amplitude_phase(two_df, 'A_height', 'C_height')
+    two_pos_df = adjust_amplitude_phase(two_pos_df, 'A_velocity', 'C_velocity')
 
-    # # Get unique radii values from the DataFrame
-    # r_values = sorted(two_pos_df['R'].unique())
-    # # Widgets for user interaction
-    # newercol1, newercol2 = st.columns(2)
-    # with newercol1:
-    #     r_selector = st.multiselect(
-    #         'Select R Values:',
-    #         options=r_values  # Allow selection from 5.5 to 15.5
-    #     )
-    # with newercol2:
-    #     metric_selector = st.radio(
-    #         'Select new Metric:',
-    #         options=['height', 'velocity'],
-    #         index=0,
-    #         horizontal=True  # Display options horizontally
-    #     )
-    # # Check if any R values are selected
-    # if not r_selector:
-    #     st.write("No R values selected, so data cannot be plotted.")
-    # else:
-    #     # Plot the initial phase differences
-    #     plot_differences(r_selector, metric_selector)
-        
-    #     # User input for interval adjustment
-    #     st.write(f"{star_emoji}Adjust Phase Shift Interval{star_emoji}")
-    #     st.write('In this section, users can adjust the phase shift interval to optimize the display of phase differences between radii. By customizing the start and end intervals, you can refine the graph to reveal smoother transitions and more coherent patterns in phase differences. This adjustment allows for better visualization of data points, ensuring that the observed trends are within a meaningful and interpretable range.')
-    #     newestcol1, newestcol2= st.columns(2)
-    #     with newestcol1:
-    #         start_interval = st.number_input("Start Interval (degrees):", value=-50.0, step=1.0)
-    #     with newestcol2:
-    #         end_interval = st.number_input("End Interval (degrees):", value=50.0, step=1.0)
-    #     update_graph = st.checkbox('See Updated Graph')
-    #     if update_graph:
-    #         plot_differences(r_selector, metric_selector, adjusted=True)
+    # Get unique radii values from the DataFrame
+    r_values = sorted(two_pos_df['R'].unique())
 
-    #     # Save graph as
-    #     filename = st.text_input("Enter the filename (without extension):", "graph")
+    # Calculate differences for consecutive R values
+    def calculate_differences(df, selected_r_values, metric):
+        differences = []
+        for i in range(len(selected_r_values) - 1):
+            r1 = selected_r_values[i]
+            r2 = selected_r_values[i + 1]
+            
+            df_r1 = df[df['R'] == r1]
+            df_r2 = df[df['R'] == r2]
+            
+            if df_r1.empty or df_r2.empty:
+                continue
+            
+            diff_column = f'{metric}_diff_{r1}_{r2}'
+            df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
+            df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
+            
+            merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
+            merged[diff_column] = merged[f'value_r1'] - merged[f'value_r2']
+            
+            differences.append(merged[['t', diff_column]])
+
+        return pd.concat(differences, ignore_index=True)
+
+    # Adjust phase differences to fit within a specified interval
+    def adjust_phase_interval(diff_df, start_interval, end_interval):
+        def adjust_value(value):
+            while value < start_interval:
+                value += 360
+            while value > end_interval:
+                value -= 360
+            return value if start_interval <= value <= end_interval else None
         
-    #     if st.button('Save Graph'):
-    #         if update_graph:
-    #             # Save the adjusted graph
-    #             diff_df = calculate_differences(two_pos_df, r_selector, metric_selector)
-    #             adjusted_df = adjust_phase_interval(diff_df, start_interval, end_interval)
+        for col in diff_df.columns:
+            if 'diff' in col:  # Only apply to difference columns
+                diff_df[col] = diff_df[col].apply(adjust_value)
+        
+        return diff_df.dropna()  # Remove rows where phase differences are out of bounds
+
+    # Interactive plot function
+    def plot_differences(selected_r_values, selected_metric, adjusted=False):
+        selected_r_values = sorted(selected_r_values)
+        
+        # Ensure consecutive selection
+        if not all(selected_r_values[i] + 1 == selected_r_values[i + 1] for i in range(len(selected_r_values) - 1)):
+            st.write("Please select consecutive R values.")
+            return
+        
+        # Calculate differences
+        diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
+        
+        # Apply interval adjustment if required
+        if adjusted:
+            diff_df = adjust_phase_interval(diff_df, start_interval, end_interval)
+        
+        fig, ax = plt.subplots(figsize=(14, 8))
+        
+        for i in range(len(selected_r_values) - 1):
+            r1 = selected_r_values[i]
+            r2 = selected_r_values[i + 1]
+            column_name = f'{selected_metric}_diff_{r1}_{r2}'
+            
+            if column_name in diff_df.columns:
+                ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
+        
+        ax.set_xlabel('Year')
+        ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
+        ax.set_title(f'{selected_metric.capitalize()} Difference Over Time')
+        ax.legend()
+        st.pyplot(fig)  # Display plot in Streamlit
+        st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
+               
+    # Widgets for user interaction
+    newercol1, newercol2 = st.columns(2)
+    with newercol1:
+        r_selector = st.multiselect(
+            'Select R Values:',
+            options=r_values  # Allow selection from 5.5 to 15.5
+        )
+    with newercol2:
+        metric_selector = st.radio(
+            'Select Metric:',
+            options=['height', 'velocity'],
+            index=0,
+            horizontal=True  # Display options horizontally
+        )
+
+    # Check if any R values are selected
+    if not r_selector:
+        st.write("No R values selected, so data cannot be plotted.")
+    else:
+        # Plot the initial phase differences
+        plot_differences(r_selector, metric_selector)
+        
+        # User input for interval adjustment
+        st.write(f"{star_emoji}Adjust Phase Shift Interval{star_emoji}")
+        st.write('In this section, users can adjust the phase shift interval to optimize the display of phase differences between radii. By customizing the start and end intervals, you can refine the graph to reveal smoother transitions and more coherent patterns in phase differences. This adjustment allows for better visualization of data points, ensuring that the observed trends are within a meaningful and interpretable range.')
+        newestcol1, newestcol2= st.columns(2)
+        with newestcol1:
+            start_interval = st.number_input("Start Interval (degrees):", value=-50.0, step=1.0)
+        with newestcol2:
+            end_interval = st.number_input("End Interval (degrees):", value=50.0, step=1.0)
+        update_graph = st.checkbox('See Updated Graph')
+        if update_graph:
+            plot_differences(r_selector, metric_selector, adjusted=True)
+
+        # Save graph as
+        
+
+        filename = st.text_input("Enter the filename (without extension):", "graph")
+        
+        if st.button('Save Graph'):
+            if update_graph:
+                # Save the adjusted graph
+                diff_df = calculate_differences(two_pos_df, r_selector, metric_selector)
+                adjusted_df = adjust_phase_interval(diff_df, start_interval, end_interval)
                 
-    #             fig, ax = plt.subplots(figsize=(14, 8))
-    #             for i in range(len(r_selector) - 1):
-    #                 r1 = r_selector[i]
-    #                 r2 = r_selector[i + 1]
-    #                 column_name = f'{metric_selector}_diff_{r1}_{r2}'
+                fig, ax = plt.subplots(figsize=(14, 8))
+                for i in range(len(r_selector) - 1):
+                    r1 = r_selector[i]
+                    r2 = r_selector[i + 1]
+                    column_name = f'{metric_selector}_diff_{r1}_{r2}'
                     
-    #                 if column_name in adjusted_df.columns:
-    #                     ax.plot(adjusted_df['t'], adjusted_df[column_name], marker='o', label=f'{metric_selector.capitalize()} diff {r1}-{r2}')
+                    if column_name in adjusted_df.columns:
+                        ax.plot(adjusted_df['t'], adjusted_df[column_name], marker='o', label=f'{metric_selector.capitalize()} diff {r1}-{r2}')
                 
-    #             ax.set_xlabel('Year')
-    #             ax.set_ylabel(f'{metric_selector.capitalize()} Difference')
-    #             ax.set_title(f'{metric_selector.capitalize()} Difference Over Time')
-    #             ax.legend()
-    #             file_path = os.path.join('saved_graphs', f'{filename}.png')
-    #             plt.savefig(file_path)
-    #             st.success(f"Graph saved as {filename}.png")
-    #         else:
-    #             st.error("No updated graph to save. Please update the graph first.")
+                ax.set_xlabel('Year')
+                ax.set_ylabel(f'{metric_selector.capitalize()} Difference')
+                ax.set_title(f'{metric_selector.capitalize()} Difference Over Time')
+                ax.legend()
+                file_path = os.path.join('saved_graphs', f'{filename}.png')
+                plt.savefig(file_path)
+                st.success(f"Graph saved as {filename}.png")
+            else:
+                st.error("No updated graph to save. Please update the graph first.")
 
 with tab7:
     st.subheader(f"{star_emoji}Custom Graphs and results{star_emoji}")
