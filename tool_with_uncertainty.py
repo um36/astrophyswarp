@@ -10,12 +10,12 @@ import os
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from utils import (
-    sine_function, 
-    adjust_amplitude_phase, 
-    plot_graph, 
-    adjust_phase_shifts, 
-    calculate_phase_difference,  
-    plot_phase_difference, 
+sine_function, 
+adjust_amplitude_phase, 
+plot_graph, 
+adjust_phase_shifts, 
+calculate_phase_difference,  
+plot_phase_difference, 
 )
 #check parameters of functions
 # Load the external CSS file
