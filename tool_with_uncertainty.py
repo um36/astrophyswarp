@@ -16,9 +16,6 @@ from utils import (
     adjust_phase_shifts, 
     calculate_phase_difference,  
     plot_phase_difference, 
-    calculate_differences, 
-    adjust_phase_interval,  
-    plot_differences 
 )
 #check parameters of functions
 # Load the external CSS file
