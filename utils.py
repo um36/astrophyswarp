@@ -201,7 +201,7 @@ def plot_phase_difference(merged_df, selected_R_pha):
         
 # Calculate phase differences for consecutive R values
 #def calculate_differences(df, selected_r_values, selected_metric):
-def calculate_differences(df, selected_r_values, metric):
+#def calculate_differences(df, selected_r_values, metric):
     """
     This function computes the difference of a specified metric (e.g., 'height' or 'velocity')
     between consecutive values of R. It assumes that the input DataFrame contains columns 
@@ -214,76 +214,9 @@ def calculate_differences(df, selected_r_values, metric):
     Returns = pd.DataFrame: A DataFrame containing time and the calculated differences for each pair of 
     consecutive R values.
     """
-    # differences = []
-
-    # # Ensure selected_metric is valid
-    # if selected_metric not in ['height', 'velocity']:
-    #     raise ValueError("Selected metric must be either 'height' or 'velocity'.")
-
-    # # Debugging: Print selected R values
-    # print(f"Selected R values: {selected_r_values}")
-
-    # for i in range(len(selected_r_values) - 1):
-    #     r1 = selected_r_values[i]
-    #     r2 = selected_r_values[i + 1]
-
-    #     # Filter the DataFrame for the current and next R values
-    #     df_r1 = df[df['R'] == r1]
-    #     df_r2 = df[df['R'] == r2]
-
-    #     # Debugging: Print DataFrames
-    #     print(f"DataFrame for R={r1}:\n", df_r1.head())
-    #     print(f"DataFrame for R={r2}:\n", df_r2.head())
-
-    #     if df_r1.empty or df_r2.empty:
-    #         print(f"Warning: No data for R={r1} or R={r2}.")
-    #         continue
-
-    #     # Prepare column names for the difference calculation
-    #     diff_column = f'{selected_metric}_diff_{r1}_{r2}'
-    #     col_name = f'C_{selected_metric}'
-
-    #     if col_name not in df_r1.columns or col_name not in df_r2.columns:
-    #         print(f"Error: Metric column '{col_name}' is missing in DataFrame.")
-    #         continue
-
-    #     df_r1 = df_r1[['t', col_name]].rename(columns={col_name: 'value'})
-    #     df_r2 = df_r2[['t', col_name]].rename(columns={col_name: 'value'})
-
-    #     merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
-
-    #     # Calculate the difference
-    #     merged[diff_column] = merged['value_r1'] - merged['value_r2']
-    #     differences.append(merged[['t', diff_column']])
-
-    # if differences:
-    #     return pd.concat(differences, ignore_index=True)
-    # else:
-    #     print("No differences calculated.")
-    #     return pd.DataFrame()
-   differences = []
-   for i in range(len(selected_r_values) - 1):
-      r1 = selected_r_values[i]
-      r2 = selected_r_values[i + 1]
-      
-      df_r1 = df[df['R'] == r1]
-      df_r2 = df[df['R'] == r2]
-      
-      if df_r1.empty or df_r2.empty:
-          continue
-      
-      diff_column = f'{metric}_diff_{r1}_{r2}'
-      df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
-      df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
-      
-      merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
-      merged[diff_column] = merged[f'value_r1'] - merged[f'value_r2']
-      
-      differences.append(merged[['t', diff_column]])
-   
-   return pd.concat(differences, ignore_index=True)
+    
 # Adjust phase differences to fit within a specified interval
-def adjust_phase_interval(diff_df, start_interval, end_interval):
+#def adjust_phase_interval(diff_df, start_interval, end_interval):
     """
     Adjusts phase difference values to fall within a specified interval range.
     This function modifies the phase difference values between consecutive radii in a DataFrame to ensure that they
@@ -297,7 +230,7 @@ def adjust_phase_interval(diff_df, start_interval, end_interval):
     Returns = pd.DataFrame: The adjusted DataFrame with phase differences wrapped within the specified
     interval, and rows with out-of-bounds values removed.
     """
-    def adjust_value(value):
+    #def adjust_value(value):
        """
        Adjusts a single phase difference value to ensure it falls within the specified interval.
        Mainly used for the below function.
@@ -305,25 +238,8 @@ def adjust_phase_interval(diff_df, start_interval, end_interval):
        value (float): The phase difference value to be adjusted. This is selected by the user.
        Returns = float or None: The adjusted value if within the interval, otherwise None.
        """
-       # Wrap the value around if it's less than the start interval
-       while value < start_interval:
-          value += 360
-       # Wrap the value around if it's greater than the end interval
-       while value > end_interval:
-          value -= 360
-       # Check if the adjusted value is within the specified interval
-       return value if start_interval <= value <= end_interval else None
-
-    # Apply the adjustment function to each column with 'diff' in its name
-    for col in diff_df.columns:
-        if 'diff' in col:
-            diff_df[col] = diff_df[col].apply(adjust_value)
-    
-    # Drop rows where any 'diff' column has a None value (out-of-bounds)
-    return diff_df.dropna()
-
-# Interactive plot function for phase between radii
-def plot_differences(selected_r_values, selected_metric, adjusted=False):
+       
+#def plot_differences(selected_r_values, selected_metric, adjusted=False):
     """
     Plots the differences for a specified metric between consecutive R values.
     This function creates a line plot showing the differences in a specified metric (e.g., 
@@ -335,34 +251,3 @@ def plot_differences(selected_r_values, selected_metric, adjusted=False):
     adjusted = bool: If True, plot the adjusted differences; otherwise, plot the raw differences.
     Returns = None: Displays the plot using Streamlit.
     """
-    selected_r_values = sorted(selected_r_values)
-  
-    # Ensure consecutive selection
-    if not all(selected_r_values[i] + 1 == selected_r_values[i + 1] for i in range(len(selected_r_values) - 1)):
-        st.write("Please select consecutive R values.")
-        return
-  
-    # Calculate differences
-    diff_df = calculate_differences(two_pos_df, selected_r_values, selected_metric)
-  
-    # Apply interval adjustment if required
-    if adjusted:
-        diff_df = adjust_phase_interval(diff_df, start_interval, end_interval)
-  
-    fig, ax = plt.subplots(figsize=(14, 8))
-  
-    for i in range(len(selected_r_values) - 1):
-        r1 = selected_r_values[i]
-        r2 = selected_r_values[i + 1]
-        column_name = f'{selected_metric}_diff_{r1}_{r2}'
-      
-        if column_name in diff_df.columns:
-            ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
-  
-    ax.set_xlabel('Year')
-    ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
-    ax.set_title(f'{selected_metric.capitalize()} Difference Over Time')
-    ax.legend()
-    st.pyplot(fig)  # Display plot in Streamlit
-    st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
-         
