@@ -1,3 +1,6 @@
+#This py file contains the code to be run and deployed on streamlit
+
+#importing packages
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.patches import Ellipse
@@ -14,7 +17,7 @@ from plotly.subplots import make_subplots
 with open('styles.css') as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-#data and title
+#read data and create title
 # Define emojis
 galaxy_emoji = "🌌"
 star_emoji = "✨"
@@ -87,8 +90,12 @@ def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
         if show_height:  # Check if height data should be plotted
             # Filter the DataFrame for the current radius
             df_selected_r_h = df[df['R'] == radius]
-            # Plot the height data on ax1 (primary y-axis)
-            ax1.plot(df_selected_r_h['t'], df_selected_r_h[ycol1], 
+
+            # Split the data into two parts if necessary to prevent connecting start and end points
+            midpoint = len(df_selected_r_h) // 2
+            ax1.plot(df_selected_r_h['t'][:midpoint], df_selected_r_h[ycol1][:midpoint], 
+                     label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
+            ax1.plot(df_selected_r_h['t'][midpoint:], df_selected_r_h[ycol1][midpoint:], 
                      label=f'Height R={radius}', linestyle='-', marker='o', color=height_colors[idx])
         
         if show_velocity:  # Check if velocity data should be plotted
@@ -96,8 +103,12 @@ def plot_graph(df, title, ycol1, ycol2, ylabel1, ylabel2, phase_shift=False):
                 ax2 = ax1.twinx()  # Create a secondary y-axis for velocity data if not already created
             # Filter the DataFrame for the current radius
             df_selected_r_v = df[df['R'] == radius]
-            # Plot the velocity data on ax2 (secondary y-axis)
-            ax2.plot(df_selected_r_v['t'], df_selected_r_v[ycol2], 
+
+            # Split the data into two parts if necessary to prevent connecting start and end points
+            midpoint = len(df_selected_r_v) // 2
+            ax2.plot(df_selected_r_v['t'][:midpoint], df_selected_r_v[ycol2][:midpoint], 
+                     label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
+            ax2.plot(df_selected_r_v['t'][midpoint:], df_selected_r_v[ycol2][midpoint:], 
                      label=f'Velocity R={radius}', linestyle='--', marker='x', color=velocity_colors[idx])
     
     # Set labels and formatting for the primary y-axis (height)
@@ -216,10 +227,11 @@ def plot_phase_difference(merged_df, selected_R_pha):
     # Display the plot using Streamlit
     st.pyplot(plt)
 
-# Create four tabs
+# Create eight tabs for each part of the analysis
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Documentation","Initial analysis","Heat Map", "Curve Fit","Model over time","Phase difference","Custom Graph","Animation"])
 
 with tab1:
+    #Tab 1 provides an introduction to the project, guiding users through its purpose and features, offers detailed explanations of the underlying data and methods, and includes a section that calculates and visualizes the precession speed of the galaxy's warp over time based on user-selected radii.
     st.subheader(f"{star_emoji}Introduction{star_emoji}")
     with st.expander("This project focuses on using computer simulations of galaxy collisions to investigate whether the warp created in them has the same behaviour as we see in the Milky Way."):
         st.write("The Milky Way is a disc galaxy, but we can now see that the outer part of the disc is warped. Because the galaxy is so big, and changes so slowly, we cannot directly see how this warp is changing over time. Theoretical models lead us to expect that the warp is a long-lasting, stable structure in the galaxy, and is only moving very slowly. However, we can now measure the velocities of large numbers of stars in the warp, and these are not consistent with a warp having a stable shape. The warp appears to precess around the galaxy as fast as the stars themselves are moving! We need to understand why this is happening. One possibility is that the warp is not long lasting but is instead the response to a recent interaction with another Galaxy.")
@@ -243,6 +255,8 @@ with tab1:
         """,
         unsafe_allow_html=True
     )
+    # Section: FAQs
+    # A subheader and various expanders that provide additional context, data details, and methodology explanations
     st.subheader(f"{star_emoji}FAQs{star_emoji}")
     with st.expander("What work has been previously completed on this?"):
         st.write("Here is the link to relevant research papers!")
@@ -317,7 +331,42 @@ with tab1:
         [Matplotlib Documentation](https://matplotlib.org/stable/contents.html)
         """
     )
+    # Section: Precession Speed of the Warp
+    # This section provides a detailed explanation of the warp precession speed and how it's calculated
+    st.subheader(f"{star_emoji}Precession speed of the Warp{star_emoji}")
+
+    # Brief description of the purpose of this section
+    st.write('In this section we use a formula to rearrange the equation of our warp speed.We can assume to a good approximation that the stars are going around the disc of the galaxy (v_phi) at 230 km/s, and that this stays constant at all radii and all times. If the warp was precessing at a fixed rate at a given radius, then the relationship between the maximum vz variation and the maximum z, at a given radius and given time would be Vz_max = z_max * (v_phi/R – Omega_warp) = z_max * (230/R – Omega_warp). Where Omega_warp is the angular speed (in units km/s/kpc) at which the warp is precessing. We can rearrange this to get an expression for Omega_warp. Then for a given radius R we have the graph below of Omega_warp as a function of time.')
+
+    # Adjust amplitude and phase of sine curves (assume adjust_amplitude_phase is a predefined function)
+    two_pos_df = adjust_amplitude_phase(two_df, 'A_height', 'C_height')
+    two_pos_df = adjust_amplitude_phase(two_pos_df, 'A_velocity', 'C_velocity')
+
+    # Calculate Omega_Warp using the given formula, storing the results in a new column
+    two_pos_df['Omega_Warp'] = (230 / two_pos_df['R']) - (two_pos_df['A_velocity'] / two_pos_df['A_height'])
+
+    # MultiSelectBox allows users to select multiple R values to compare Omega_Warp over time
+    selected_r_multi = st.multiselect("Select multiple R values to compare Omega_Warp over time:", two_pos_df['R'].unique())
+
+    # Plot Omega_Warp over time for each selected R value
+    if selected_r_multi:
+        plt.figure(figsize=(10, 6))
+        for r_value in selected_r_multi:
+            # Filter data for the selected R value
+            filtered_df_multi = two_pos_df[two_pos_df['R'] == r_value]
+            # Plot Omega_Warp against time
+            plt.plot(filtered_df_multi['t'], filtered_df_multi['Omega_Warp'], label=f'R = {r_value}')
+        plt.xlabel('Time (Gyr)')
+        plt.ylabel('Omega Warp (Km/s/Kpc)')
+        plt.title('Omega Warp over Time for Selected R Values')
+        plt.legend()
+        st.pyplot(plt.gcf())
+
+    # Explanation of what the Omega_Warp value represents and its significance
+    st.write('The value of Omega_warp you find here is the one we would measure if we could only see the positions and velocities of stars at a single moment in time (which is basically the situation we have in the real galaxy). The simulation also allow us to measure an actual precession speed because we can see how the phase of the warp varies with time. The difference between the two is interesting as we try to explain what we see in the Milky Way. As a sense of scale 1 km/s/kpc corresponds to about 1 radian per billion years, i.e., approximately 60 degrees per billion years.')
+
 with tab2:
+    #Tab 2 included 2 plots one visualisation where the user can see how the height and velocity changes over time for a specific phi/section of the disc. The second is all phi regions for a specific year in more detail.
     st.subheader(f"{star_emoji}Initial analysis overview{star_emoji}")
     st.write('This graph displays the variation of the selected column (Zmean or vZ_mean) over time for different radius values (R) at a specific phi value. You can choose a phi value from the dropdown menu, select which column you want to plot on the y-axis, and select multiple radius values to compare their trends on the same graph. Plotting this graph gives an idea of a general picture for one specific region in the galactic disc.')
     # Create columns
@@ -328,6 +377,7 @@ with tab2:
     column_options = ['Zmean', 'vZ_mean']
     # Select multiple r values
     r_values = full_df['R'].unique()
+    #creates the user select options in 3 columns
     with col1:
         selected_phi = st.selectbox('Select phi', phi_values)
     with col2:
@@ -341,33 +391,27 @@ with tab2:
 
     # Plotting
         fig, ax = plt.subplots()
-    
         for r_value in selected_r_values:
             subset = filtered_df[filtered_df['R'] == r_value]
             ax.plot(subset['t'], subset[selected_column], label=f'radius = {r_value}')
         
         # Set x-axis label to 'Time (Gyr)'
         ax.set_xlabel('Time (Gyr)')
-        
         # Set y-axis label based on the selected column
         ax.set_ylabel(selected_column)
-        
         # Ensure the x-axis starts from 0
         ax.set_xlim(left=0)
-        
         # Add a legend and title
         ax.legend()
         ax.set_title(f'{selected_column} over time for $\phi$ = {selected_phi}')
-        
         # Display the plot in Streamlit
         st.pyplot(fig)
         
     st.subheader(f"{star_emoji}Initial analysis for specific point in time{star_emoji}")
     st.write('This graph displays the variation of the selected column (Zmean or vZ_mean) across all phi positions for a specific year and different radius values (R). You can choose a year from the dropdown menu, select which column you want to plot on the y-axis, and select multiple radius values to compare their patterns across positions.')
-    # user input options
-    # Create columns
+    # user input options and create columns
     column1, column2, column3 = st.columns(3)
-    # Select year value
+    # finding all the specific year values 
     year_value = (full_df['t'].unique())
     with column1:
         selected_year = st.selectbox('select year', year_value)
@@ -382,24 +426,26 @@ with tab2:
 
     # Plotting
         fig_two, ax = plt.subplots()
-
         for r_value_t in selected_r_values_t:
             subset_t = filtered_df_t[filtered_df_t['R'] == r_value_t]
             ax.plot(subset_t['phi'], subset_t[selected_column_t], label=f'radius = {r_value_t}')
 
+        #plot labels and axis
         ax.set_xlabel(r'$\phi$ (degrees)')
-        # Ensure the x-axis starts from 0
         ax.set_xlim(left=0)
         ax.set_ylabel(selected_column_t)
         ax.legend()
         ax.set_title(f'{selected_column_t} over all positions for year = {selected_year}')
-
         st.pyplot(fig_two)
+
+    #the results of the plot are shown here
     st.write('The above graph highlights a lot of fluctuation at the start, before 0.1. After this point theres a concentrated height and velocity that shifts with time.')
 
 with tab3:
+    #tab 3 is the same information as tab 2 second plot in the form of a heatmap and circular plot so we are able to visualise a specific year for all radii and phi values at the same time.
     st.subheader(f"{star_emoji}Heat Map Analysis{star_emoji}")
     st.write('This heatmap visualizes the distribution of the selected column (Zmean or vZ_mean) across different phi positions and radius values (R) for a specific year. You can select a year and a column to analyze, and the heatmap will display the variation in values across the 2D plane defined by phi and R.')
+    #user options and columns
     colu1,colu2 = st.columns(2)
     year_value_h = (full_df['t'].unique())
     column_options_h = ['Zmean', 'vZ_mean']
@@ -411,15 +457,17 @@ with tab3:
 
     # Prepare data for heatmap
     heatmap_data = filtered_df_t_h.pivot(index='R', columns='phi', values=selected_column_h)
+    #uses seaborn to create visualisation with set colour scheme
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(heatmap_data, cmap='coolwarm', norm=Normalize(vmin=-np.max(np.abs(heatmap_data)), vmax=np.max(np.abs(heatmap_data))), ax=ax)
-
+    
+    #plotting the labels
     ax.set_xlabel(r'$\phi$ (degrees)')
     ax.set_ylabel('Radius (kpc)')
     ax.set_title(f'{selected_column_h} Heatmap at Time = {selected_year_h:.2f}')
-
     # Show the heatmap in Streamlit
     st.pyplot(fig)
+
     st.subheader(f"{star_emoji}Heat Map Circular{star_emoji}")
     st.write('This circular distribution plot shows the spatial distribution of the selected column (Zmean or vZ_mean) across a 2D plane for a specific year. The plot translates phi and radius values (R) into Cartesian coordinates (X and Y), allowing you to visualize how the values are distributed in space.')
 
@@ -463,6 +511,7 @@ with tab3:
     st.write("Initially, the heat map shows a wide range of variability with no clear pattern in both height and velocity. After year 0.1, there is a noticeable shift, with height/velocity values becoming more positive and more negative, peaking at 0.6 in the phi range between 170 and 270 degrees (for height), and between 190 and 240 (for velocity). This increase is more pronounced at larger radii, while smaller radii near the center show height values approaching zero with less pronounced variation. Over time, the values shift across different phi regions, and the overall smoothness of the data decreases, indicating evolving patterns and potential changes in underlying processes.")
 
 with tab4:
+    #Tab 4 shows the differnce in manual fitting sine curves and automatically using curve fit.
     st.subheader(f"{star_emoji} Curve fit analysis for $\phi$ {star_emoji}")
     st.write('This section provides a curve fit analysis for the selected column (height or velocity) at a specific year and radius value (R). You can choose a year, column, and radius value to analyse, and then compare the data against either a manual or automatic sine wave fit. Use the checkboxes to toggle between the manual fit, where you can adjust the amplitude, phase shift, and vertical shift, and the automatic fit, which uses optimised parameters to fit the data. The graph will display the selected data alongside the chosen fitting curve, allowing you to explore how well the model represents the underlying data.')
     # User input options
@@ -480,7 +529,8 @@ with tab4:
     if selected_year_c is not None and selected_column_t_c and selected_r_values_t_c:
         # Filter the two_df dataframe based on selections
         filtered_df_t_c = two_df[(two_df['t'] == selected_year_c) & (two_df['R'] == selected_r_values_t_c)]
-
+       
+        #this defined the a,c and d optimum parameters based on whether the user selects height of velocity
         if not filtered_df_t_c.empty:
             if selected_column_t_c == 'height Kpc':
                 A_opt = filtered_df_t_c['A_height'].values[0]
@@ -493,7 +543,7 @@ with tab4:
                 D_opt = filtered_df_t_c['D_velocity'].values[0]
                 y_data = filtered_df_t_c['vZ_mean']
 
-            x_data = filtered_df_t_c['phi']
+            x_data = filtered_df_t_c['phi']#this stays the same regardless of user option
 
             # Checkboxes for showing manual and automatic fitting
             show_manual_fit = st.checkbox("Show Manual Fit")
@@ -506,7 +556,7 @@ with tab4:
                 vertical_shift = st.slider("Vertical Shift (D)", min_value=0.0, max_value=10.0, value=5.0, step=0.0001)
                 # Create a sine wave based on user inputs
                 y_manual = amplitude * np.sin(np.radians(x_data + phase_shift)) + vertical_shift
-                # Plot manual fitting
+                # Plot manual fitting with label and axis adjustment
                 fig, ax = plt.subplots()
                 ax.plot(filtered_df_t_c['phi'], y_data, label='Data', color='blue')
                 ax.plot(x_data, y_manual, label='Manual Fit', color='orange', linestyle='--')
@@ -539,12 +589,11 @@ with tab4:
     st.write('In conclusion, the automatic sine wave fit aligns closely with the observed data (with uncertainty is smoother than without), confirming that the variables height and velocity follow a periodic pattern with the provided parameters A, C and D. Manual adjustments show how deviations in amplitude, phase shift, and vertical shift can impact the fit, indicating areas where the model may require further refinement. However on the whole, the optimum parameters are slighty better overall.')
 
 with tab5:
-
+    #tab 5 shows that after finding the optimised parameters we can then plot them overtime to see how amplitude (strength of warp) and phase shift (motion of warp) change overtime. With a section to adjust the degree interval for phase shift.
     # Adjusting amplitude and phase shift values for height and velocity
     two_pos_df = adjust_amplitude_phase(two_df.copy(), 'A_height', 'C_height')
     two_pos_df = adjust_amplitude_phase(two_pos_df, 'A_velocity', 'C_velocity')
 
-    # Streamlit layout
     st.subheader(f"{star_emoji} Model across all years {star_emoji}")
     st.write('This section allows you to analyse the amplitude (A) or phase shift (C) of height and velocity data across all years for selected radius values (R). You can choose whether to display the amplitude or phase shift model, and select which radius values and data types (height and/or velocity) to include in the plot. With the resulting graph you can compare the amplitude or phase shift variations for both height and velocity overtime.')
     # User input options
@@ -561,6 +610,7 @@ with tab5:
     if not show_velocity and not show_height:
         st.write("Please select at least one data type (Velocity or Height) to plot.")
     else:
+        #if the user selects amplitude then plot the graph and display the results
         if plot_type == "Amplitude (A)":
             st.subheader("Amplitude (A) Model across all years")
             st.write('The amplitude in the data represents the maximum deviation of particles from the galactic plane (for height) or the maximum velocity in the vertical direction (for velocity) at a given radius and time.')
@@ -595,6 +645,7 @@ with tab5:
         """,
         unsafe_allow_html=True
     )
+        #if the user selects phase shift then plot and show results, if the graph is a more broad interval and needs to be adjusted theres an option for this.
         elif plot_type == "Phase Shift (C)":
             st.subheader("Original Phase Shift (C) Model across all years")
             st.write('The phase shift of the galactic warps height data indicates the timing and distribution of vertical displacements from the galactic plane. The phase shift of the galactic warp’s velocity data reflects the timing and distribution of vertical velocities within the galactic disk. The combined data represents the curvature of particles within the warp at a given radius and time.')
@@ -608,8 +659,9 @@ with tab5:
             if update_graph:
                 adjusted_height_df = adjust_phase_shifts(two_pos_df.copy(), 'C_height', start_point)
                 adjusted_velocity_df = adjust_phase_shifts(two_pos_df.copy(), 'C_velocity', start_point)
+                adjusted_combined_df = pd.concat([adjusted_height_df, adjusted_velocity_df])
                 st.subheader("Adjusted Phase Shift (C) Model")
-                fig = plot_graph(pd.concat([adjusted_height_df, adjusted_velocity_df]), 'Adjusted Phase Shift (C) over Time', 'C_height', 'C_velocity', 'Phase Shift (C)', 'Phase Shift (C)', phase_shift=True)
+                fig = plot_graph( adjusted_combined_df, 'Adjusted Phase Shift (C) over Time', 'C_height', 'C_velocity', 'Phase Shift (C)', 'Phase Shift (C)', phase_shift=True)
 
             # Store the final figure in session state
             st.session_state['fig_final'] = fig
@@ -628,7 +680,7 @@ with tab5:
         """,
         unsafe_allow_html=True
     )
-        # Save graph as
+        # Save graph and if folder doesnt exist then create it
         filename = st.text_input("Enter the filename without extension:", "graph")
         if st.button('Save Phase Shift Graph'):
             if 'fig_final' in st.session_state:
@@ -640,6 +692,7 @@ with tab5:
             else:
                 st.error("No graph to save. Please create or update a graph first.")
 with tab6:
+    #tab 6 has two plots comparing phase difference. The first plot is the differnce between height and velocity at a set radius for example the height phase shift and velocity phase shift for 5.5 Kpc and then we can compare to previous studies. The second is the difference in height phase shift/velocity phase shift between consecutive radii for example difference between height phase at 6.5 and 5.5 Kpc.
     st.subheader(f"{star_emoji} Difference in Phase shift H and V{star_emoji}")
     st.write('This analysis explores the phase shift difference between height and velocity for a selected radius (R) over time. The phase shift difference is calculated by subtracting the velocity phase shift from the height phase shift. Any differences outside the range of ±180 degrees are adjusted to maintain consistency. This visualisation helps in understanding how the phase relationships between height and velocity evolve over time for a specific radius, highlighting periods of synchronisation or divergence.')
     selected_R_pha = st.selectbox('Select Radius (R):', two_df['R'].unique())
@@ -673,7 +726,8 @@ with tab6:
         Returns = pd.DataFrame: A DataFrame containing time and the calculated differences for each pair of 
         consecutive R values.
         """
-        differences = []
+        differences = [] #create list
+        #as we have multiselect box, we need a for loop for each option
         for i in range(len(selected_r_values) - 1):
             r1 = selected_r_values[i]
             r2 = selected_r_values[i + 1]
@@ -684,13 +738,14 @@ with tab6:
             if df_r1.empty or df_r2.empty:
                 continue
             
+            #creates a new column with the differnces is not already there
             diff_column = f'{metric}_diff_{r1}_{r2}'
             df_r1 = df_r1[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
             df_r2 = df_r2[['t', f'C_{metric}']].rename(columns={f'C_{metric}': 'value'})
             
+            #adds this column to the original table to be able to plot against time
             merged = pd.merge(df_r1, df_r2, on='t', suffixes=('_r1', '_r2'))
             merged[diff_column] = merged[f'value_r1'] - merged[f'value_r2']
-            
             differences.append(merged[['t', diff_column]])
 
         return pd.concat(differences, ignore_index=True)
@@ -767,9 +822,9 @@ with tab6:
             if column_name in diff_df.columns:
                 ax.plot(diff_df['t'], diff_df[column_name], marker='o', label=f'{selected_metric.capitalize()} diff {r1}-{r2}')
         
-        ax.set_xlabel('Year')
-        ax.set_ylabel(f'{selected_metric.capitalize()} Difference')
-        ax.set_title(f'{selected_metric.capitalize()} Difference Over Time')
+        ax.set_xlabel('Time (Gyr)')
+        ax.set_ylabel(f'{selected_metric.capitalize()} Phase Difference (degrees)')
+        ax.set_title(f'{selected_metric.capitalize()} Phase Difference between radii Over Time')
         ax.legend()
         st.pyplot(fig)  # Display plot in Streamlit
         st.write('For the graph above the phase difference between (5.5 and 6.5 etc) the inner radii have a difference close to zero. On the other hand, as you get further out this differnce has a slightly bigger range around zero and this point where it fluctuates around zero is significantly less for bigger radii.') 
@@ -808,9 +863,7 @@ with tab6:
         if update_graph:
             plot_differences(r_selector, metric_selector, adjusted=True)
 
-        # Save graph as
-        
-
+        # Save graph similar to previous phase shift one
         filename = st.text_input("Enter the filename (without extension):", "graph")
         
         if st.button('Save Graph'):
@@ -828,6 +881,7 @@ with tab6:
                     if column_name in adjusted_df.columns:
                         ax.plot(adjusted_df['t'], adjusted_df[column_name], marker='o', label=f'{metric_selector.capitalize()} diff {r1}-{r2}')
                 
+                #plot axis and labels
                 ax.set_xlabel('Year')
                 ax.set_ylabel(f'{metric_selector.capitalize()} Difference')
                 ax.set_title(f'{metric_selector.capitalize()} Difference Over Time')
@@ -837,8 +891,8 @@ with tab6:
                 st.success(f"Graph saved as {filename}.png")
             else:
                 st.error("No updated graph to save. Please update the graph first.")
-
 with tab7:
+    #tab 7 creates expanders for each saved graph throughout the app and has the option to add analysis underneath.
     st.subheader(f"{star_emoji}Custom Graphs and results{star_emoji}")
     st.write('In this section, you can view and analyse custom graphs that you have previously saved. The saved graphs are displayed in expandable sections, each showing the graph image along with a text area where you can add your analysis or notes. This feature allows you to review your saved visualizations and document your observations or insights directly alongside the graphs.')
     # Assume you have saved graphs in a folder called 'saved_graphs'
@@ -867,6 +921,7 @@ with tab7:
         st.warning(f"The folder '{saved_graphs_folder}' does not exist.")
 
 with tab8:
+#tab 8 creates a plot to visualise all years in detail and shows the change through a slider option. Similar to the inital second plot on tab 1 with added curve fit and option to view all years.
     st.subheader(f"{star_emoji}Animation across all Years{star_emoji}")
     st.write("This section allows you to explore how a selected variable changes over time for a specific radius. By choosing a radius and a variable such as Zmean or vZ_mean, you can view an animation showing the evolution of the data across different years. The animation displays the variable's distribution and fitted curves for each year, helping you observe trends and variations over time. Use the slider to navigate through the years and analyze how the variable's behavior shifts.")
     # Adjusting amplitude and phase shift values for height and velocity
@@ -952,6 +1007,7 @@ with tab8:
     global_min = min(all_y_values)
     global_max = max(all_y_values)
 
+    #labela and axis
     fig.update_layout(
         sliders=sliders,
         title=f"{variable} over phi for Radius {selected_R_ani}",
