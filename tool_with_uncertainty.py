@@ -847,10 +847,13 @@ with tab6:
     # Check if any R values are selected
     if not r_selector:
         st.write("No R values selected, so data cannot be plotted.")
+    elif len(r_selector) < 2:
+        # Check if less than two radius values are selected
+        st.write("Please select at least two consecutive R values.")
     else:
         # Plot the initial phase differences
         plot_differences(r_selector, metric_selector)
-        
+
         # User input for interval adjustment
         st.write(f"{star_emoji}Adjust Phase Shift Interval{star_emoji}")
         st.write('In this section, users can adjust the phase shift interval to optimize the display of phase differences between radii. By customizing the start and end intervals, you can refine the graph to reveal smoother transitions and more coherent patterns in phase differences. This adjustment allows for better visualization of data points, ensuring that the observed trends are within a meaningful and interpretable range.')
@@ -863,7 +866,7 @@ with tab6:
         if update_graph:
             plot_differences(r_selector, metric_selector, adjusted=True)
 
-        # Save graph similar to previous phase shift one
+        # Save graph as
         filename = st.text_input("Enter the filename (without extension):", "graph")
         
         if st.button('Save Graph'):
@@ -881,7 +884,6 @@ with tab6:
                     if column_name in adjusted_df.columns:
                         ax.plot(adjusted_df['t'], adjusted_df[column_name], marker='o', label=f'{metric_selector.capitalize()} diff {r1}-{r2}')
                 
-                #plot axis and labels
                 ax.set_xlabel('Year')
                 ax.set_ylabel(f'{metric_selector.capitalize()} Difference')
                 ax.set_title(f'{metric_selector.capitalize()} Difference Over Time')
